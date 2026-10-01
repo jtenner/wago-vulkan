@@ -17,7 +17,7 @@
         },
         "provenance": {
           "repository": "https://github.com/jtenner/wago-vulkan",
-          "license": "UNLICENSED",
+          "license": "MIT",
           "authors": [
             "jtenner"
           ]
@@ -37,7 +37,7 @@
           }
         ]
       },
-      "definitionDigest": "sha256:71e04221c8770f06cde1d537808174930bc330e56e08f7ddb6069165f4feecb3"
+      "definitionDigest": "sha256:33ade569a251f62996620a5d3c1ef879d89ed892b9c406df556023705e085786"
     }
   ]
 }

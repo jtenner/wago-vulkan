@@ -7,7 +7,7 @@
     "name": "Vulkan",
     "description": "Packed GC, Wasm32 and Wasm64 Vulkan FFI",
     "stability": "experimental",
-    "license": "UNLICENSED",
+    "license": "MIT",
     "repository": "https://github.com/jtenner/wago-vulkan",
     "authors": [{"name": "jtenner"}],
     "platforms": ["linux/amd64", "linux/arm64"],

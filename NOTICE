@@ -5,8 +5,8 @@ https://github.com/KhronosGroup/Vulkan-Headers/blob/main/registry/vk.xml
 Copyright 2015-2025 The Khronos Group Inc.
 SPDX-License-Identifier: Apache-2.0 OR MIT
 
-The following MIT license applies to the upstream registry material. It does
-not change the license declaration for this project's wrapper implementation.
+The following MIT license applies to the upstream registry material. The
+wrapper implementation is also MIT-licensed; see LICENSE.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -4,6 +4,9 @@ Thin, named Vulkan imports for Wago. The GC interface uses **mutable packed
 `array<i32>` buffers**. Guests assemble Vulkan data themselves; wrappers borrow
 compatible buffers and translate pointer fields where necessary.
 
+Licensed under [MIT](LICENSE). [NOTICE](NOTICE) preserves the upstream Vulkan
+registry attribution.
+
 | Import module | Pointer parameter | Structure layout |
 | --- | --- | --- |
 | `vulkan.gc` | `(anyref buffer, i32 byteOffset)` | 64-bit wire layout inside packed i32 words |

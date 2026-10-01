@@ -90,7 +90,7 @@ func Provider(options ...Options) wago.PluginProvider {
 	definition := wago.PluginDefinition{
 		ID: PluginID, Name: "Vulkan", Version: "0.1.0", Description: "Packed GC, Wasm32 and Wasm64 Vulkan FFI", Stability: wago.Experimental,
 		Compatibility: wago.Compatibility{Platforms: []string{"linux/amd64", "linux/arm64"}},
-		Provenance:    wago.PluginProvenance{Repository: "https://github.com/jtenner/wago-vulkan", License: "UNLICENSED", Authors: []string{"jtenner"}},
+		Provenance:    wago.PluginProvenance{Repository: "https://github.com/jtenner/wago-vulkan", License: "MIT", Authors: []string{"jtenner"}},
 		Authorities: []wago.AuthorityRequest{{Name: wago.AuthorityHostImportDefine, Mode: wago.AuthorityRequired,
 			Reason: "Define native Vulkan imports", Scope: wago.AuthorityScope{Modules: []string{ModuleGC, ModuleWasm32, ModuleWasm64}}}},
 	}
