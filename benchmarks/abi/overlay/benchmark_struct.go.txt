@@ -1,0 +1,48 @@
+// Benchmark-only Wago extension. Copied into an isolated runtime by prepare.py.
+// This is not a supported upstream API.
+package wago
+
+import (
+	"fmt"
+	gc "github.com/wago-org/wago/src/core/runtime/gc/native"
+)
+
+func (v *guestStorageView) BenchmarkStructFields(ref GuestGCRef, dst []uint64) error {
+	if err := v.ensureActive(); err != nil {
+		return err
+	}
+	if ref.view != v {
+		return fmt.Errorf("foreign benchmark reference")
+	}
+	for i := range dst {
+		value, err := v.in.gc.StructGet(ref.ref, uint32(i))
+		if err != nil {
+			return err
+		}
+		if value.Kind != gc.StorageF32 {
+			return fmt.Errorf("expected f32")
+		}
+		dst[i] = value.Bits
+	}
+	return nil
+}
+
+func (v *guestStorageView) BenchmarkStructBytes(ref GuestGCRef) ([]byte, error) {
+	if err := v.ensureActive(); err != nil {
+		return nil, err
+	}
+	if ref.view != v {
+		return nil, fmt.Errorf("foreign benchmark reference")
+	}
+	return v.in.gc.BenchmarkScalarStructPayload(ref.ref)
+}
+
+func (v *guestStorageView) BenchmarkViewportArray(ref GuestGCRef, dst []byte) error {
+	if err := v.ensureActive(); err != nil {
+		return err
+	}
+	if ref.view != v {
+		return fmt.Errorf("foreign benchmark reference")
+	}
+	return v.in.gc.BenchmarkViewportArray(ref.ref, dst)
+}

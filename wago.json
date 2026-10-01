@@ -1,0 +1,17 @@
+{
+  "$schema": "https://wago.sh/v1/schema.json",
+  "plugins": {},
+  "package": {
+    "module": "github.com/jtenner/wago-vulkan",
+    "version": "0.1.0",
+    "name": "Vulkan",
+    "description": "Packed GC, Wasm32 and Wasm64 Vulkan FFI",
+    "stability": "experimental",
+    "license": "UNLICENSED",
+    "repository": "https://github.com/jtenner/wago-vulkan",
+    "authors": [{"name": "jtenner"}],
+    "platforms": ["linux/amd64", "linux/arm64"],
+    "category": "graphics",
+    "tags": ["vulkan", "graphics", "wasmgc", "wasm32", "wasm64", "ffi"]
+  }
+}

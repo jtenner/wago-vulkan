@@ -1,0 +1,61 @@
+// Benchmark-only collector accessor. Never used outside WithGuestStorage.
+package gc
+
+import (
+	"encoding/binary"
+	"fmt"
+)
+
+// A best-case bulk accessor for the exact six-f32 test schema. Native struct
+// offsets are still checked; this benchmark does not treat GC object bytes as
+// an arbitrary Vulkan structure.
+func (c *Collector) BenchmarkScalarStructPayload(ref Ref) ([]byte, error) {
+	d, err := c.refDesc(ref)
+	if err != nil {
+		return nil, err
+	}
+	if d.Kind != KindStruct || len(d.Fields) != 6 {
+		return nil, fmt.Errorf("expected six-field struct")
+	}
+	for i, f := range d.Fields {
+		if f.Kind != StorageF32 || f.Offset != uint32(i*4) {
+			return nil, fmt.Errorf("unexpected viewport field")
+		}
+	}
+	b := c.bytes(ref)
+	if len(b) < int(PayloadOffset)+24 {
+		return nil, fmt.Errorf("short struct payload")
+	}
+	return b[PayloadOffset : PayloadOffset+24 : PayloadOffset+24], nil
+}
+
+// Favorable bulk marshaller: validate the root array once, then resolve/check
+// each child and copy its numeric payload. Compact references are read only
+// inside the collector, while its lease is held. No per-item GCArrayRef calls.
+func (c *Collector) BenchmarkViewportArray(ref Ref, dst []byte) error {
+	d, err := c.refDesc(ref)
+	if err != nil {
+		return err
+	}
+	if d.Kind != KindArray || (d.Elem != StorageRef && d.Elem != StorageRefNull) || d.ElemSize != 4 {
+		return fmt.Errorf("expected reference array")
+	}
+	n := c.header(ref).Aux
+	if uint64(n)*24 != uint64(len(dst)) {
+		return fmt.Errorf("wrong destination size")
+	}
+	b := c.bytes(ref)
+	if uint64(PayloadOffset)+uint64(n)*4 > uint64(len(b)) {
+		return fmt.Errorf("short reference array")
+	}
+	refs := b[PayloadOffset:]
+	for i := uint32(0); i < n; i++ {
+		child := Ref(binary.LittleEndian.Uint32(refs[i*4:]))
+		data, err := c.BenchmarkScalarStructPayload(child)
+		if err != nil {
+			return err
+		}
+		copy(dst[i*24:(i+1)*24], data)
+	}
+	return nil
+}

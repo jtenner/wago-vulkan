@@ -1,0 +1,66 @@
+// Generated direct scalar trampolines.
+#ifndef WV_SCALAR_GENERATED_H
+#define WV_SCALAR_GENERATED_H
+#include <stdint.h>
+uint64_t wv_direct_vkBindBufferMemory(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkBindImageMemory(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkCmdBeginQuery(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkCmdBindIndexBuffer(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkCmdBindPipeline(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdCopyQueryPoolResults(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5, uint64_t a6, uint64_t a7);
+uint64_t wv_direct_vkCmdDispatch(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkCmdDispatchIndirect(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdDraw(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4);
+uint64_t wv_direct_vkCmdDrawIndexed(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4, uint64_t a5);
+uint64_t wv_direct_vkCmdDrawIndexedIndirect(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4);
+uint64_t wv_direct_vkCmdDrawIndirect(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4);
+uint64_t wv_direct_vkCmdEndQuery(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdEndRenderPass(uint64_t a0);
+uint64_t wv_direct_vkCmdFillBuffer(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3, uint64_t a4);
+uint64_t wv_direct_vkCmdNextSubpass(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkCmdResetEvent(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdResetQueryPool(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkCmdSetDepthBias(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkCmdSetDepthBounds(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdSetEvent(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdSetLineWidth(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkCmdSetStencilCompareMask(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdSetStencilReference(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdSetStencilWriteMask(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkCmdWriteTimestamp(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkDestroyBuffer(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyBufferView(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyCommandPool(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyDescriptorPool(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyDescriptorSetLayout(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyDevice(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkDestroyEvent(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyFence(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyFramebuffer(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyImage(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyImageView(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyInstance(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkDestroyPipeline(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyPipelineCache(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyPipelineLayout(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyQueryPool(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyRenderPass(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroySampler(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroySemaphore(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroyShaderModule(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroySurfaceKHR(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDestroySwapchainKHR(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkDeviceWaitIdle(uint64_t a0);
+uint64_t wv_direct_vkEndCommandBuffer(uint64_t a0);
+uint64_t wv_direct_vkFreeMemory(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkGetEventStatus(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkGetFenceStatus(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkGetPhysicalDeviceXlibPresentationSupportKHR(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3);
+uint64_t wv_direct_vkQueueWaitIdle(uint64_t a0);
+uint64_t wv_direct_vkResetCommandBuffer(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkResetCommandPool(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkResetDescriptorPool(uint64_t a0, uint64_t a1, uint64_t a2);
+uint64_t wv_direct_vkResetEvent(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkSetEvent(uint64_t a0, uint64_t a1);
+uint64_t wv_direct_vkUnmapMemory(uint64_t a0, uint64_t a1);
+#endif

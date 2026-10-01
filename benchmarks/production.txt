@@ -1,0 +1,24 @@
+goos: linux
+goarch: amd64
+pkg: github.com/jtenner/wago-vulkan
+cpu: AMD Ryzen 7 8845HS w/ Radeon 780M Graphics
+BenchmarkVulkan/gc/query         	  107220	      2131 ns/op	     624 B/op	       2 allocs/op
+BenchmarkVulkan/gc/query         	  112958	      2152 ns/op	     624 B/op	       2 allocs/op
+BenchmarkVulkan/gc/query         	  107522	      2197 ns/op	     624 B/op	       2 allocs/op
+BenchmarkVulkan/gc/idle          	   30024	      8436 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/gc/idle          	   28660	      8246 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/gc/idle          	   28147	      8362 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/wasm32/query     	  269822	       944.1 ns/op	      48 B/op	       1 allocs/op
+BenchmarkVulkan/wasm32/query     	  273922	      1041 ns/op	      48 B/op	       1 allocs/op
+BenchmarkVulkan/wasm32/query     	  269224	      1013 ns/op	      48 B/op	       1 allocs/op
+BenchmarkVulkan/wasm32/idle      	   29974	      7852 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/wasm32/idle      	   30114	      7822 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/wasm32/idle      	   29800	      7872 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/wasm64/query     	  273991	       927.1 ns/op	      48 B/op	       1 allocs/op
+BenchmarkVulkan/wasm64/query     	  268212	       942.7 ns/op	      48 B/op	       1 allocs/op
+BenchmarkVulkan/wasm64/query     	  270303	       905.8 ns/op	      48 B/op	       1 allocs/op
+BenchmarkVulkan/wasm64/idle      	   29512	      8044 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/wasm64/idle      	   30522	      8193 ns/op	       0 B/op	       0 allocs/op
+BenchmarkVulkan/wasm64/idle      	   31112	      7930 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/jtenner/wago-vulkan	6.864s

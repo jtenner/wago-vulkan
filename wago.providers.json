@@ -1,0 +1,43 @@
+{
+  "$schema": "https://wago.sh/v1/providers.schema.json",
+  "providers": [
+    {
+      "importPath": "github.com/jtenner/wago-vulkan/register",
+      "definition": {
+        "id": "github.com/jtenner/wago-vulkan",
+        "name": "Vulkan",
+        "version": "0.1.0",
+        "description": "Packed GC, Wasm32 and Wasm64 Vulkan FFI",
+        "stability": "experimental",
+        "compatibility": {
+          "platforms": [
+            "linux/amd64",
+            "linux/arm64"
+          ]
+        },
+        "provenance": {
+          "repository": "https://github.com/jtenner/wago-vulkan",
+          "license": "UNLICENSED",
+          "authors": [
+            "jtenner"
+          ]
+        },
+        "authorities": [
+          {
+            "name": "host.import.define",
+            "mode": "required",
+            "reason": "Define native Vulkan imports",
+            "scope": {
+              "modules": [
+                "vulkan.gc",
+                "vulkan.wasm32",
+                "vulkan.wasm64"
+              ]
+            }
+          }
+        ]
+      },
+      "definitionDigest": "sha256:71e04221c8770f06cde1d537808174930bc330e56e08f7ddb6069165f4feecb3"
+    }
+  ]
+}

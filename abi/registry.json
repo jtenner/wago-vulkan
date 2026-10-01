@@ -1,0 +1,11 @@
+{
+  "sha256": "1adbeb17c00be04771aac41bbb33850ff83c3503b42dcb2a25a96b4fd79c7e07",
+  "core": "1.0",
+  "extensions": [
+    "VK_KHR_surface",
+    "VK_KHR_swapchain",
+    "VK_KHR_xlib_surface"
+  ],
+  "commands": 151,
+  "structures": 111
+}

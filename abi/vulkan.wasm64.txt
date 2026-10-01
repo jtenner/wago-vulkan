@@ -1,0 +1,151 @@
+vkAcquireNextImage2KHR(device: i64, pAcquireInfo: i64, pImageIndex: i64) -> i32
+vkAcquireNextImageKHR(device: i64, swapchain: i64, timeout: i64, semaphore: i64, fence: i64, pImageIndex: i64) -> i32
+vkAllocateCommandBuffers(device: i64, pAllocateInfo: i64, pCommandBuffers: i64) -> i32
+vkAllocateDescriptorSets(device: i64, pAllocateInfo: i64, pDescriptorSets: i64) -> i32
+vkAllocateMemory(device: i64, pAllocateInfo: i64, pAllocator: i64, pMemory: i64) -> i32
+vkBeginCommandBuffer(commandBuffer: i64, pBeginInfo: i64) -> i32
+vkBindBufferMemory(device: i64, buffer: i64, memory: i64, memoryOffset: i64) -> i32
+vkBindImageMemory(device: i64, image: i64, memory: i64, memoryOffset: i64) -> i32
+vkCmdBeginQuery(commandBuffer: i64, queryPool: i64, query: i32, flags: i32) -> void
+vkCmdBeginRenderPass(commandBuffer: i64, pRenderPassBegin: i64, contents: i32) -> void
+vkCmdBindDescriptorSets(commandBuffer: i64, pipelineBindPoint: i32, layout: i64, firstSet: i32, descriptorSetCount: i32, pDescriptorSets: i64, dynamicOffsetCount: i32, pDynamicOffsets: i64) -> void
+vkCmdBindIndexBuffer(commandBuffer: i64, buffer: i64, offset: i64, indexType: i32) -> void
+vkCmdBindPipeline(commandBuffer: i64, pipelineBindPoint: i32, pipeline: i64) -> void
+vkCmdBindVertexBuffers(commandBuffer: i64, firstBinding: i32, bindingCount: i32, pBuffers: i64, pOffsets: i64) -> void
+vkCmdBlitImage(commandBuffer: i64, srcImage: i64, srcImageLayout: i32, dstImage: i64, dstImageLayout: i32, regionCount: i32, pRegions: i64, filter: i32) -> void
+vkCmdClearAttachments(commandBuffer: i64, attachmentCount: i32, pAttachments: i64, rectCount: i32, pRects: i64) -> void
+vkCmdClearColorImage(commandBuffer: i64, image: i64, imageLayout: i32, pColor: i64, rangeCount: i32, pRanges: i64) -> void
+vkCmdClearDepthStencilImage(commandBuffer: i64, image: i64, imageLayout: i32, pDepthStencil: i64, rangeCount: i32, pRanges: i64) -> void
+vkCmdCopyBuffer(commandBuffer: i64, srcBuffer: i64, dstBuffer: i64, regionCount: i32, pRegions: i64) -> void
+vkCmdCopyBufferToImage(commandBuffer: i64, srcBuffer: i64, dstImage: i64, dstImageLayout: i32, regionCount: i32, pRegions: i64) -> void
+vkCmdCopyImage(commandBuffer: i64, srcImage: i64, srcImageLayout: i32, dstImage: i64, dstImageLayout: i32, regionCount: i32, pRegions: i64) -> void
+vkCmdCopyImageToBuffer(commandBuffer: i64, srcImage: i64, srcImageLayout: i32, dstBuffer: i64, regionCount: i32, pRegions: i64) -> void
+vkCmdCopyQueryPoolResults(commandBuffer: i64, queryPool: i64, firstQuery: i32, queryCount: i32, dstBuffer: i64, dstOffset: i64, stride: i64, flags: i32) -> void
+vkCmdDispatch(commandBuffer: i64, groupCountX: i32, groupCountY: i32, groupCountZ: i32) -> void
+vkCmdDispatchIndirect(commandBuffer: i64, buffer: i64, offset: i64) -> void
+vkCmdDraw(commandBuffer: i64, vertexCount: i32, instanceCount: i32, firstVertex: i32, firstInstance: i32) -> void
+vkCmdDrawIndexed(commandBuffer: i64, indexCount: i32, instanceCount: i32, firstIndex: i32, vertexOffset: i32, firstInstance: i32) -> void
+vkCmdDrawIndexedIndirect(commandBuffer: i64, buffer: i64, offset: i64, drawCount: i32, stride: i32) -> void
+vkCmdDrawIndirect(commandBuffer: i64, buffer: i64, offset: i64, drawCount: i32, stride: i32) -> void
+vkCmdEndQuery(commandBuffer: i64, queryPool: i64, query: i32) -> void
+vkCmdEndRenderPass(commandBuffer: i64) -> void
+vkCmdExecuteCommands(commandBuffer: i64, commandBufferCount: i32, pCommandBuffers: i64) -> void
+vkCmdFillBuffer(commandBuffer: i64, dstBuffer: i64, dstOffset: i64, size: i64, data: i32) -> void
+vkCmdNextSubpass(commandBuffer: i64, contents: i32) -> void
+vkCmdPipelineBarrier(commandBuffer: i64, srcStageMask: i32, dstStageMask: i32, dependencyFlags: i32, memoryBarrierCount: i32, pMemoryBarriers: i64, bufferMemoryBarrierCount: i32, pBufferMemoryBarriers: i64, imageMemoryBarrierCount: i32, pImageMemoryBarriers: i64) -> void
+vkCmdPushConstants(commandBuffer: i64, layout: i64, stageFlags: i32, offset: i32, size: i32, pValues: i64) -> void
+vkCmdResetEvent(commandBuffer: i64, event: i64, stageMask: i32) -> void
+vkCmdResetQueryPool(commandBuffer: i64, queryPool: i64, firstQuery: i32, queryCount: i32) -> void
+vkCmdResolveImage(commandBuffer: i64, srcImage: i64, srcImageLayout: i32, dstImage: i64, dstImageLayout: i32, regionCount: i32, pRegions: i64) -> void
+vkCmdSetBlendConstants(commandBuffer: i64, blendConstants: i64) -> void
+vkCmdSetDepthBias(commandBuffer: i64, depthBiasConstantFactor: f32, depthBiasClamp: f32, depthBiasSlopeFactor: f32) -> void
+vkCmdSetDepthBounds(commandBuffer: i64, minDepthBounds: f32, maxDepthBounds: f32) -> void
+vkCmdSetEvent(commandBuffer: i64, event: i64, stageMask: i32) -> void
+vkCmdSetLineWidth(commandBuffer: i64, lineWidth: f32) -> void
+vkCmdSetScissor(commandBuffer: i64, firstScissor: i32, scissorCount: i32, pScissors: i64) -> void
+vkCmdSetStencilCompareMask(commandBuffer: i64, faceMask: i32, compareMask: i32) -> void
+vkCmdSetStencilReference(commandBuffer: i64, faceMask: i32, reference: i32) -> void
+vkCmdSetStencilWriteMask(commandBuffer: i64, faceMask: i32, writeMask: i32) -> void
+vkCmdSetViewport(commandBuffer: i64, firstViewport: i32, viewportCount: i32, pViewports: i64) -> void
+vkCmdUpdateBuffer(commandBuffer: i64, dstBuffer: i64, dstOffset: i64, dataSize: i64, pData: i64) -> void
+vkCmdWaitEvents(commandBuffer: i64, eventCount: i32, pEvents: i64, srcStageMask: i32, dstStageMask: i32, memoryBarrierCount: i32, pMemoryBarriers: i64, bufferMemoryBarrierCount: i32, pBufferMemoryBarriers: i64, imageMemoryBarrierCount: i32, pImageMemoryBarriers: i64) -> void
+vkCmdWriteTimestamp(commandBuffer: i64, pipelineStage: i32, queryPool: i64, query: i32) -> void
+vkCreateBuffer(device: i64, pCreateInfo: i64, pAllocator: i64, pBuffer: i64) -> i32
+vkCreateBufferView(device: i64, pCreateInfo: i64, pAllocator: i64, pView: i64) -> i32
+vkCreateCommandPool(device: i64, pCreateInfo: i64, pAllocator: i64, pCommandPool: i64) -> i32
+vkCreateComputePipelines(device: i64, pipelineCache: i64, createInfoCount: i32, pCreateInfos: i64, pAllocator: i64, pPipelines: i64) -> i32
+vkCreateDescriptorPool(device: i64, pCreateInfo: i64, pAllocator: i64, pDescriptorPool: i64) -> i32
+vkCreateDescriptorSetLayout(device: i64, pCreateInfo: i64, pAllocator: i64, pSetLayout: i64) -> i32
+vkCreateDevice(physicalDevice: i64, pCreateInfo: i64, pAllocator: i64, pDevice: i64) -> i32
+vkCreateEvent(device: i64, pCreateInfo: i64, pAllocator: i64, pEvent: i64) -> i32
+vkCreateFence(device: i64, pCreateInfo: i64, pAllocator: i64, pFence: i64) -> i32
+vkCreateFramebuffer(device: i64, pCreateInfo: i64, pAllocator: i64, pFramebuffer: i64) -> i32
+vkCreateGraphicsPipelines(device: i64, pipelineCache: i64, createInfoCount: i32, pCreateInfos: i64, pAllocator: i64, pPipelines: i64) -> i32
+vkCreateImage(device: i64, pCreateInfo: i64, pAllocator: i64, pImage: i64) -> i32
+vkCreateImageView(device: i64, pCreateInfo: i64, pAllocator: i64, pView: i64) -> i32
+vkCreateInstance(pCreateInfo: i64, pAllocator: i64, pInstance: i64) -> i32
+vkCreatePipelineCache(device: i64, pCreateInfo: i64, pAllocator: i64, pPipelineCache: i64) -> i32
+vkCreatePipelineLayout(device: i64, pCreateInfo: i64, pAllocator: i64, pPipelineLayout: i64) -> i32
+vkCreateQueryPool(device: i64, pCreateInfo: i64, pAllocator: i64, pQueryPool: i64) -> i32
+vkCreateRenderPass(device: i64, pCreateInfo: i64, pAllocator: i64, pRenderPass: i64) -> i32
+vkCreateSampler(device: i64, pCreateInfo: i64, pAllocator: i64, pSampler: i64) -> i32
+vkCreateSemaphore(device: i64, pCreateInfo: i64, pAllocator: i64, pSemaphore: i64) -> i32
+vkCreateShaderModule(device: i64, pCreateInfo: i64, pAllocator: i64, pShaderModule: i64) -> i32
+vkCreateSwapchainKHR(device: i64, pCreateInfo: i64, pAllocator: i64, pSwapchain: i64) -> i32
+vkCreateXlibSurfaceKHR(instance: i64, pCreateInfo: i64, pAllocator: i64, pSurface: i64) -> i32
+vkDestroyBuffer(device: i64, buffer: i64, pAllocator: i64) -> void
+vkDestroyBufferView(device: i64, bufferView: i64, pAllocator: i64) -> void
+vkDestroyCommandPool(device: i64, commandPool: i64, pAllocator: i64) -> void
+vkDestroyDescriptorPool(device: i64, descriptorPool: i64, pAllocator: i64) -> void
+vkDestroyDescriptorSetLayout(device: i64, descriptorSetLayout: i64, pAllocator: i64) -> void
+vkDestroyDevice(device: i64, pAllocator: i64) -> void
+vkDestroyEvent(device: i64, event: i64, pAllocator: i64) -> void
+vkDestroyFence(device: i64, fence: i64, pAllocator: i64) -> void
+vkDestroyFramebuffer(device: i64, framebuffer: i64, pAllocator: i64) -> void
+vkDestroyImage(device: i64, image: i64, pAllocator: i64) -> void
+vkDestroyImageView(device: i64, imageView: i64, pAllocator: i64) -> void
+vkDestroyInstance(instance: i64, pAllocator: i64) -> void
+vkDestroyPipeline(device: i64, pipeline: i64, pAllocator: i64) -> void
+vkDestroyPipelineCache(device: i64, pipelineCache: i64, pAllocator: i64) -> void
+vkDestroyPipelineLayout(device: i64, pipelineLayout: i64, pAllocator: i64) -> void
+vkDestroyQueryPool(device: i64, queryPool: i64, pAllocator: i64) -> void
+vkDestroyRenderPass(device: i64, renderPass: i64, pAllocator: i64) -> void
+vkDestroySampler(device: i64, sampler: i64, pAllocator: i64) -> void
+vkDestroySemaphore(device: i64, semaphore: i64, pAllocator: i64) -> void
+vkDestroyShaderModule(device: i64, shaderModule: i64, pAllocator: i64) -> void
+vkDestroySurfaceKHR(instance: i64, surface: i64, pAllocator: i64) -> void
+vkDestroySwapchainKHR(device: i64, swapchain: i64, pAllocator: i64) -> void
+vkDeviceWaitIdle(device: i64) -> i32
+vkEndCommandBuffer(commandBuffer: i64) -> i32
+vkEnumerateDeviceExtensionProperties(physicalDevice: i64, pLayerName: i64, pPropertyCount: i64, pProperties: i64) -> i32
+vkEnumerateDeviceLayerProperties(physicalDevice: i64, pPropertyCount: i64, pProperties: i64) -> i32
+vkEnumerateInstanceExtensionProperties(pLayerName: i64, pPropertyCount: i64, pProperties: i64) -> i32
+vkEnumerateInstanceLayerProperties(pPropertyCount: i64, pProperties: i64) -> i32
+vkEnumeratePhysicalDevices(instance: i64, pPhysicalDeviceCount: i64, pPhysicalDevices: i64) -> i32
+vkFlushMappedMemoryRanges(device: i64, memoryRangeCount: i32, pMemoryRanges: i64) -> i32
+vkFreeCommandBuffers(device: i64, commandPool: i64, commandBufferCount: i32, pCommandBuffers: i64) -> void
+vkFreeDescriptorSets(device: i64, descriptorPool: i64, descriptorSetCount: i32, pDescriptorSets: i64) -> i32
+vkFreeMemory(device: i64, memory: i64, pAllocator: i64) -> void
+vkGetBufferMemoryRequirements(device: i64, buffer: i64, pMemoryRequirements: i64) -> void
+vkGetDeviceGroupPresentCapabilitiesKHR(device: i64, pDeviceGroupPresentCapabilities: i64) -> i32
+vkGetDeviceGroupSurfacePresentModesKHR(device: i64, surface: i64, pModes: i64) -> i32
+vkGetDeviceMemoryCommitment(device: i64, memory: i64, pCommittedMemoryInBytes: i64) -> void
+vkGetDeviceQueue(device: i64, queueFamilyIndex: i32, queueIndex: i32, pQueue: i64) -> void
+vkGetEventStatus(device: i64, event: i64) -> i32
+vkGetFenceStatus(device: i64, fence: i64) -> i32
+vkGetImageMemoryRequirements(device: i64, image: i64, pMemoryRequirements: i64) -> void
+vkGetImageSparseMemoryRequirements(device: i64, image: i64, pSparseMemoryRequirementCount: i64, pSparseMemoryRequirements: i64) -> void
+vkGetImageSubresourceLayout(device: i64, image: i64, pSubresource: i64, pLayout: i64) -> void
+vkGetPhysicalDeviceFeatures(physicalDevice: i64, pFeatures: i64) -> void
+vkGetPhysicalDeviceFormatProperties(physicalDevice: i64, format: i32, pFormatProperties: i64) -> void
+vkGetPhysicalDeviceImageFormatProperties(physicalDevice: i64, format: i32, type: i32, tiling: i32, usage: i32, flags: i32, pImageFormatProperties: i64) -> i32
+vkGetPhysicalDeviceMemoryProperties(physicalDevice: i64, pMemoryProperties: i64) -> void
+vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice: i64, surface: i64, pRectCount: i64, pRects: i64) -> i32
+vkGetPhysicalDeviceProperties(physicalDevice: i64, pProperties: i64) -> void
+vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice: i64, pQueueFamilyPropertyCount: i64, pQueueFamilyProperties: i64) -> void
+vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice: i64, format: i32, type: i32, samples: i32, usage: i32, tiling: i32, pPropertyCount: i64, pProperties: i64) -> void
+vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice: i64, surface: i64, pSurfaceCapabilities: i64) -> i32
+vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice: i64, surface: i64, pSurfaceFormatCount: i64, pSurfaceFormats: i64) -> i32
+vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice: i64, surface: i64, pPresentModeCount: i64, pPresentModes: i64) -> i32
+vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice: i64, queueFamilyIndex: i32, surface: i64, pSupported: i64) -> i32
+vkGetPhysicalDeviceXlibPresentationSupportKHR(physicalDevice: i64, queueFamilyIndex: i32, dpy: i64, visualID: i64) -> i32
+vkGetPipelineCacheData(device: i64, pipelineCache: i64, pDataSize: i64, pData: i64) -> i32
+vkGetQueryPoolResults(device: i64, queryPool: i64, firstQuery: i32, queryCount: i32, dataSize: i64, pData: i64, stride: i64, flags: i32) -> i32
+vkGetRenderAreaGranularity(device: i64, renderPass: i64, pGranularity: i64) -> void
+vkGetSwapchainImagesKHR(device: i64, swapchain: i64, pSwapchainImageCount: i64, pSwapchainImages: i64) -> i32
+vkInvalidateMappedMemoryRanges(device: i64, memoryRangeCount: i32, pMemoryRanges: i64) -> i32
+vkMapMemory(device: i64, memory: i64, offset: i64, size: i64, flags: i32, ppData: i64) -> i32
+vkMergePipelineCaches(device: i64, dstCache: i64, srcCacheCount: i32, pSrcCaches: i64) -> i32
+vkQueueBindSparse(queue: i64, bindInfoCount: i32, pBindInfo: i64, fence: i64) -> i32
+vkQueuePresentKHR(queue: i64, pPresentInfo: i64) -> i32
+vkQueueSubmit(queue: i64, submitCount: i32, pSubmits: i64, fence: i64) -> i32
+vkQueueWaitIdle(queue: i64) -> i32
+vkResetCommandBuffer(commandBuffer: i64, flags: i32) -> i32
+vkResetCommandPool(device: i64, commandPool: i64, flags: i32) -> i32
+vkResetDescriptorPool(device: i64, descriptorPool: i64, flags: i32) -> i32
+vkResetEvent(device: i64, event: i64) -> i32
+vkResetFences(device: i64, fenceCount: i32, pFences: i64) -> i32
+vkSetEvent(device: i64, event: i64) -> i32
+vkUnmapMemory(device: i64, memory: i64) -> void
+vkUpdateDescriptorSets(device: i64, descriptorWriteCount: i32, pDescriptorWrites: i64, descriptorCopyCount: i32, pDescriptorCopies: i64) -> void
+vkWaitForFences(device: i64, fenceCount: i32, pFences: i64, waitAll: i32, timeout: i64) -> i32

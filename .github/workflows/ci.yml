@@ -1,0 +1,23 @@
+name: Verify
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y libvulkan-dev libx11-dev mesa-vulkan-drivers
+      - name: Select software Vulkan driver
+        run: |
+          driver=$(find /usr/share/vulkan/icd.d -name 'lvp_icd*.json' -print -quit)
+          test -n "$driver"
+          echo "VK_DRIVER_FILES=$driver" >> "$GITHUB_ENV"
+      - run: go vet ./...
+      - run: go test -race -count=1 -tags integration ./...
+      - run: GOEXPERIMENT=cgocheck2 go test -count=1 -tags integration ./...
+      - run: bash scripts/test-native.sh
