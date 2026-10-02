@@ -4,7 +4,7 @@
 Generation probes native C headers, checks every 64-bit layout, and computes
 32-bit wire layouts with 64-bit Vulkan handles. Runtime has no XML/reflection.
 """
-import argparse, hashlib, json, pathlib, re, subprocess, tempfile
+import argparse, hashlib, json, os, pathlib, re, shlex, subprocess, tempfile
 import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -15,12 +15,21 @@ registry = pathlib.Path(opts.registry)
 x = ET.parse(registry).getroot()
 types = {t.get("name", t.findtext("name")): t for t in x.findall("types/type")}
 commands = {c.findtext("proto/name"): c for c in x.findall("commands/command") if c.find("proto") is not None}
-extensions = ["VK_KHR_surface", "VK_KHR_swapchain", "VK_KHR_xlib_surface"]
+extensions = ["VK_KHR_surface", "VK_KHR_swapchain", "VK_KHR_xlib_surface", "VK_EXT_metal_surface"]
+external_types = {"Display", "CAMetalLayer"}
+native_commands = {
+    "vkCreateMetalSurfaceEXT": "wv_create_metal_surface",
+    "vkCreateXlibSurfaceKHR": "wv_create_xlib_surface",
+    "vkGetPhysicalDeviceXlibPresentationSupportKHR": "wv_xlib_presentation_support",
+}
 names = [c.get("name") for f in x.findall("feature") if f.get("name") == "VK_VERSION_1_0" for c in f.findall("require/command")]
 for e in x.findall("extensions/extension"):
     if e.get("name") in extensions:
         names += [c.get("name") for c in e.findall("require/command")]
 names = sorted(set(names) - {"vkGetInstanceProcAddr", "vkGetDeviceProcAddr"})
+# Keep the original command/type IDs stable when adding the Metal surface ABI.
+# The IDs are internal, but preserving them keeps generated changes reviewable.
+names = [n for n in names if n != 'vkCreateMetalSurfaceEXT'] + ['vkCreateMetalSurfaceEXT']
 for c in commands.values():
     for p in list(c.findall("param")):
         if p.get("api", "vulkan") != "vulkan": c.remove(p)
@@ -59,12 +68,13 @@ def visit(t):
 for n in names:
     for p in commands[n].findall("param"): visit(p.findtext("type"))
 seen.update(["uint64_t", "uint32_t", "char", "void", "size_t"])
-ordered = sorted(seen)
+metal_types = {'CAMetalLayer', 'VkMetalSurfaceCreateFlagsEXT', 'VkMetalSurfaceCreateInfoEXT'}
+ordered = sorted(seen - metal_types) + sorted(seen & metal_types)
 ids = {t: i for i, t in enumerate(ordered)}
 
 def scalar(t, width):
     if t == "void": return 1, 1
-    if t in ["Display"]: return 8, 8  # native external object, never dereferenced
+    if t in external_types: return 8, 8  # native external object, never dereferenced
     if t in ["Window", "VisualID"]: return 8, 8
     if t == "size_t": return width//8, width//8
     if t in ["char", "uint8_t", "int8_t"]: return 1, 1
@@ -93,7 +103,7 @@ def layout(t, width):
     union = node.get("category") == "union"
     pos, align, fields = 0, 1, {}
     for m in members(t):
-        if pointers(m): size = a = 8 if m.findtext('type')=='Display' else width//8
+        if pointers(m): size = a = 8 if m.findtext('type') in external_types else width//8
         else:
             sub = layout(m.findtext("type"), width)
             size, a = sub["size"], sub["align"]
@@ -109,9 +119,9 @@ for t in ordered:
     for w in [32, 64]: layout(t, w)
 
 # Validate the host ABI rather than silently publishing guessed native layouts.
-probe = ['#define VK_USE_PLATFORM_XLIB_KHR', '#include <vulkan/vulkan.h>', '#include <stdio.h>', '#include <stddef.h>', 'int main(void) {']
+probe = ['#include "platform.h"', '#include <stdio.h>', '#include <stddef.h>', 'int main(void) {']
 for t in ordered:
-    if t in ["void", "Display"]: continue
+    if t == "void" or t in external_types: continue
     probe += [f'printf("{t} __sizeof %zu\\n", sizeof({t}));']
     if types.get(t) is not None and types[t].get("category") in ["struct", "union"]:
         for m in members(t):
@@ -121,7 +131,9 @@ probe += ['}']
 with tempfile.TemporaryDirectory() as d:
     p = pathlib.Path(d)
     (p/"probe.c").write_text("\n".join(probe))
-    subprocess.run(["cc", str(p/"probe.c"), "-o", str(p/"probe")], check=True)
+    packages = ['vulkan'] + ([] if os.uname().sysname == 'Darwin' else ['x11'])
+    flags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', *packages], text=True))
+    subprocess.run([os.environ.get('CC', 'cc'), '-I'+str(ROOT), *flags, str(p/"probe.c"), "-o", str(p/"probe")], check=True)
     for line in subprocess.check_output([str(p/"probe")], text=True).splitlines():
         t, field, value = line.split()
         expected = layout(t, 64)["size"] if field == "__sizeof" else layout(t, 64)["fields"][field]
@@ -135,7 +147,7 @@ def needs(t, width):
     if node is None or node.get("category") not in ["struct", "union"]:
         result = layout(t,width)["size"] != layout(t,64)["size"]
     else:
-        result = layout(t,width) != layout(t,64) or any(pointers(m) and m.findtext("type") != "Display" or not pointers(m) and needs(m.findtext("type"),width) for m in members(t))
+        result = layout(t,width) != layout(t,64) or any(pointers(m) and m.findtext("type") not in external_types or not pointers(m) and needs(m.findtext("type"),width) for m in members(t))
     converted[t,width] = bool(result)
     return bool(result)
 
@@ -169,7 +181,7 @@ for t in ordered:
             if pointers(m)>1: flags.append("WV_DOUBLE")
             if mt=="char": flags.append("WV_STRING")
             if name=="pNext": flags.append("WV_PNEXT")
-            if mt=="Display" or mt.startswith("PFN_"): flags.append("WV_EXTERNAL")
+            if mt in external_types or mt.startswith("PFN_"): flags.append("WV_EXTERNAL")
             if not declaration(m).startswith("const"): flags.append("WV_WRITE")
             if t=='VkWriteDescriptorSet' and name in ['pImageInfo','pBufferInfo','pTexelBufferView']:
                 flags.append({'pImageInfo':'WV_DESC_IMAGE','pBufferInfo':'WV_DESC_BUFFER','pTexelBufferView':'WV_DESC_TEXEL'}[name])
@@ -192,12 +204,12 @@ for t in ordered:
 c += ['default: return -1; }}']
 
 def is_pointer(p): return bool(pointers(p) or array_extent(p))
-def guest_pointer(p): return is_pointer(p) and p.findtext("type") not in ["Display", "VkAllocationCallbacks"]
+def guest_pointer(p): return is_pointer(p) and p.findtext("type") not in external_types | {"VkAllocationCallbacks"}
 def result_type(t):
     if t=="void": return None
     return "i64" if scalar(t,64)[0]==8 else "i32"
 def valtype(p,w):
-    if is_pointer(p): return "i64" if p.findtext("type")=="Display" else f"i{w}"
+    if is_pointer(p): return "i64" if p.findtext("type") in external_types else f"i{w}"
     if p.findtext("type")=="float": return "f32"
     return f'i{scalar(p.findtext("type"),w)[0]*8}'
 def native_expression(p, j):
@@ -238,7 +250,7 @@ for i,n in enumerate(names):
     metadata.append(dict(name=n,params=[dict(name=p.findtext('name'),type=p.findtext('type'),pointer=is_pointer(p),guest_pointer=guest_pointer(p)) for p in params]))
 c += ['default: return WV_UNSUPPORTED; }}','uint64_t wv_dispatch(int command, const uint64_t *a) { switch(command) {']
 for i,n in enumerate(names):
-    cmd=commands[n];params=cmd.findall('param');invoke=f'{n}('+', '.join(native_expression(p,j) for j,p in enumerate(params))+')'
+    cmd=commands[n];params=cmd.findall('param');invoke=f'{native_commands.get(n,n)}('+', '.join(native_expression(p,j) for j,p in enumerate(params))+')'
     c += [f'case {i}: '+(invoke+'; return 0;' if cmd.findtext('proto/type')=='void' else 'return (uint64_t)'+invoke+';')]
 c += ['default: return 0; }}']
 
@@ -253,7 +265,7 @@ for i,n in enumerate(names):
         sig=[];display=[]
         for p in params:
             pname=p.findtext('name')
-            if mode=='gc' and is_pointer(p) and p.findtext('type')!='Display':
+            if mode=='gc' and is_pointer(p) and p.findtext('type') not in external_types:
                 sig += ['wago.ValAnyRef','wago.ValI32'];display += [pname+': anyref',pname+'Offset: i32']
             else:
                 vt=valtype(p,width);sig += ['wago.Val'+vt.upper()];display += [pname+': '+vt]
@@ -265,7 +277,7 @@ for i,n in enumerate(names):
         nativeparams=', '.join(f'uint64_t a{j}' for j in range(len(params))) or 'void'
         scalar_h += [f'uint64_t wv_direct_{n}({nativeparams});']
         nativeargs=[native_expression(p,j).replace(f'a[{j}]',f'a{j}') for j,p in enumerate(params)]
-        invoke=n+'('+', '.join(nativeargs)+')'
+        invoke=native_commands.get(n,n)+'('+', '.join(nativeargs)+')'
         c += [f'uint64_t wv_direct_{n}({nativeparams}) '+'{ '+(invoke+'; return 0;' if rt is None else 'return (uint64_t)'+invoke+';')+' }']
         call=f'C.wv_direct_{n}('+', '.join(f'C.uint64_t(call.ParamSlots()[{j}])' for j in range(len(params)))+')'
         body=call if rt is None else 'call.Set'+rt.upper()+'(0, '+('int32' if rt=='i32' else 'int64')+'('+call+'))'
@@ -303,7 +315,7 @@ for w in [32,64]:
         wire.append('typedef '+node.get('category')+' {')
         for m in members(t):
             mt=m.findtext('type')
-            if pointers(m):ctype='uint64_t' if mt=='Display' else f'uint{w}_t'
+            if pointers(m):ctype='uint64_t' if mt in external_types else f'uint{w}_t'
             elif types.get(mt) is not None and types[mt].get('category') in ['struct','union']:ctype=f'wv{w}_{mt}'
             elif mt in ['float','double','char']:ctype=mt
             else:ctype='uint'+str(scalar(mt,w)[0]*8)+'_t'

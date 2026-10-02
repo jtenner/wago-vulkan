@@ -85,6 +85,20 @@ func TestSignaturesAndActivation(t *testing.T) {
 	}
 }
 
+func TestGuestExtensionMatching(t *testing.T) {
+	// CPU-only checks of the guest's portability-extension discovery helper:
+	// empty list, prefix mismatch, match after a nonmatch, and absent name.
+	for _, mode := range []string{"gc", "wasm32", "wasm64"} {
+		t.Run(mode, func(t *testing.T) {
+			inst, _ := fixture(t, mode, Options{})
+			if got := invoke(t, inst, "extensionMatching")[0]; got != 1 {
+				t.Fatalf("extension matching: got %d, want 1", got)
+			}
+			invoke(t, inst, "extensionNegotiation")
+		})
+	}
+}
+
 func TestPluginClose(t *testing.T) {
 	p := New(Options{})
 	a, err := p.take()

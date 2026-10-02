@@ -152,6 +152,7 @@ enum {
     WV_vkSetEvent = 147,
     WV_vkUnmapMemory = 148,
     WV_vkUpdateDescriptorSets = 149,
-    WV_vkWaitForFences = 150
+    WV_vkWaitForFences = 150,
+    WV_vkCreateMetalSurfaceEXT = 151
 };
 #endif

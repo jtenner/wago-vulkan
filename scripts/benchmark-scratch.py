@@ -3,6 +3,7 @@
 from pathlib import Path
 import statistics
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,15 +35,20 @@ replace_once("            assert(wv_invoke(c,expected)==WV_OK);\n#ifdef WV_TEST_
 #ifdef WV_TEST_SCRATCH_SCAN''')
 replace_once("        free(arena);", "        free(arena);wv_free(c);")
 
-flags = subprocess.check_output(["pkg-config", "--cflags", "--libs", "vulkan", "x11"], text=True).split()
+packages = ['vulkan'] + ([] if sys.platform == 'darwin' else ['x11'])
+flags = subprocess.check_output(["pkg-config", "--cflags", "--libs", *packages], text=True).split()
 with tempfile.TemporaryDirectory(prefix="wago-vulkan-scratch-") as directory:
     temporary = Path(directory)
     fixture = temporary / "fixture.c"
     executable = temporary / "benchmark"
     fixture.write_text(source)
+    generated = temporary / "commands.o"
+    cflags = subprocess.check_output(["pkg-config", "--cflags", *packages], text=True).split()
+    subprocess.run(["cc", "-std=c11", "-O2", "-Dwv_dispatch=wv_test_real_dispatch",
+                    "-DvkCmdSetDepthBias=wv_test_vkCmdSetDepthBias", *cflags,
+                    "-c", str(ROOT / "commands_generated.c"), "-o", str(generated)], check=True)
     subprocess.run(["cc", "-std=c11", "-O2", "-DWV_TEST_SCRATCH_SCAN", str(fixture),
-                    str(ROOT / "bridge.c"), str(ROOT / "commands_generated.c"),
-                    "-Wl,--wrap=wv_dispatch", "-Wl,--wrap=vkCmdSetDepthBias", *flags,
+                    str(ROOT / "bridge.c"), str(ROOT / "platform.c"), str(generated), *flags,
                     "-o", str(executable)], check=True)
     output = subprocess.check_output([str(executable)], text=True)
 

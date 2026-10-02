@@ -161,6 +161,7 @@ var commands = []command{
 	{name: "vkUnmapMemory", arity: 2, pointers: 0, allocators: 0, result: voidResult, signatures: [3][]wago.ValType{[]wago.ValType{wago.ValI64, wago.ValI64}, []wago.ValType{wago.ValI64, wago.ValI64}, []wago.ValType{wago.ValI64, wago.ValI64}}, direct: direct_vkUnmapMemory},
 	{name: "vkUpdateDescriptorSets", arity: 5, pointers: 20, allocators: 0, result: voidResult, signatures: [3][]wago.ValType{[]wago.ValType{wago.ValI64, wago.ValI32, wago.ValAnyRef, wago.ValI32, wago.ValI32, wago.ValAnyRef, wago.ValI32}, []wago.ValType{wago.ValI64, wago.ValI32, wago.ValI32, wago.ValI32, wago.ValI32}, []wago.ValType{wago.ValI64, wago.ValI32, wago.ValI64, wago.ValI32, wago.ValI64}}, direct: nil},
 	{name: "vkWaitForFences", arity: 5, pointers: 4, allocators: 0, result: wago.ValI32, signatures: [3][]wago.ValType{[]wago.ValType{wago.ValI64, wago.ValI32, wago.ValAnyRef, wago.ValI32, wago.ValI32, wago.ValI64}, []wago.ValType{wago.ValI64, wago.ValI32, wago.ValI32, wago.ValI32, wago.ValI64}, []wago.ValType{wago.ValI64, wago.ValI32, wago.ValI64, wago.ValI32, wago.ValI64}}, direct: nil},
+	{name: "vkCreateMetalSurfaceEXT", arity: 4, pointers: 10, allocators: 4, result: wago.ValI32, signatures: [3][]wago.ValType{[]wago.ValType{wago.ValI64, wago.ValAnyRef, wago.ValI32, wago.ValAnyRef, wago.ValI32, wago.ValAnyRef, wago.ValI32}, []wago.ValType{wago.ValI64, wago.ValI32, wago.ValI32, wago.ValI32}, []wago.ValType{wago.ValI64, wago.ValI64, wago.ValI64, wago.ValI64}}, direct: nil},
 }
 
 func direct_vkBindBufferMemory(call wago.HostCall) {
