@@ -1930,6 +1930,17 @@ _Static_assert(offsetof(wv32_VkXlibSurfaceCreateInfoKHR, dpy) == 16, "VkXlibSurf
 _Static_assert(offsetof(wv32_VkXlibSurfaceCreateInfoKHR, window) == 24, "VkXlibSurfaceCreateInfoKHR.window wire offset");
 typedef struct {
     uint32_t sType;
+    uint32_t pNext;
+    uint32_t flags;
+    uint64_t pLayer;
+} wv32_VkMetalSurfaceCreateInfoEXT;
+_Static_assert(sizeof(wv32_VkMetalSurfaceCreateInfoEXT) == 24, "VkMetalSurfaceCreateInfoEXT wire size");
+_Static_assert(offsetof(wv32_VkMetalSurfaceCreateInfoEXT, sType) == 0, "VkMetalSurfaceCreateInfoEXT.sType wire offset");
+_Static_assert(offsetof(wv32_VkMetalSurfaceCreateInfoEXT, pNext) == 4, "VkMetalSurfaceCreateInfoEXT.pNext wire offset");
+_Static_assert(offsetof(wv32_VkMetalSurfaceCreateInfoEXT, flags) == 8, "VkMetalSurfaceCreateInfoEXT.flags wire offset");
+_Static_assert(offsetof(wv32_VkMetalSurfaceCreateInfoEXT, pLayer) == 16, "VkMetalSurfaceCreateInfoEXT.pLayer wire offset");
+typedef struct {
+    uint32_t sType;
     uint64_t pNext;
     uint64_t swapchain;
     uint64_t timeout;
@@ -3853,4 +3864,15 @@ _Static_assert(offsetof(wv64_VkXlibSurfaceCreateInfoKHR, pNext) == 8, "VkXlibSur
 _Static_assert(offsetof(wv64_VkXlibSurfaceCreateInfoKHR, flags) == 16, "VkXlibSurfaceCreateInfoKHR.flags wire offset");
 _Static_assert(offsetof(wv64_VkXlibSurfaceCreateInfoKHR, dpy) == 24, "VkXlibSurfaceCreateInfoKHR.dpy wire offset");
 _Static_assert(offsetof(wv64_VkXlibSurfaceCreateInfoKHR, window) == 32, "VkXlibSurfaceCreateInfoKHR.window wire offset");
+typedef struct {
+    uint32_t sType;
+    uint64_t pNext;
+    uint32_t flags;
+    uint64_t pLayer;
+} wv64_VkMetalSurfaceCreateInfoEXT;
+_Static_assert(sizeof(wv64_VkMetalSurfaceCreateInfoEXT) == 32, "VkMetalSurfaceCreateInfoEXT wire size");
+_Static_assert(offsetof(wv64_VkMetalSurfaceCreateInfoEXT, sType) == 0, "VkMetalSurfaceCreateInfoEXT.sType wire offset");
+_Static_assert(offsetof(wv64_VkMetalSurfaceCreateInfoEXT, pNext) == 8, "VkMetalSurfaceCreateInfoEXT.pNext wire offset");
+_Static_assert(offsetof(wv64_VkMetalSurfaceCreateInfoEXT, flags) == 16, "VkMetalSurfaceCreateInfoEXT.flags wire offset");
+_Static_assert(offsetof(wv64_VkMetalSurfaceCreateInfoEXT, pLayer) == 24, "VkMetalSurfaceCreateInfoEXT.pLayer wire offset");
 #endif

@@ -1463,6 +1463,28 @@
       "size": 8
     }
   },
+  "VkMetalSurfaceCreateInfoEXT": {
+    "32": {
+      "align": 8,
+      "fields": {
+        "flags": 8,
+        "pLayer": 16,
+        "pNext": 4,
+        "sType": 0
+      },
+      "size": 24
+    },
+    "64": {
+      "align": 8,
+      "fields": {
+        "flags": 16,
+        "pLayer": 24,
+        "pNext": 8,
+        "sType": 0
+      },
+      "size": 32
+    }
+  },
   "VkOffset2D": {
     "32": {
       "align": 4,

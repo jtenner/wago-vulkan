@@ -11,6 +11,8 @@
         "stability": "experimental",
         "compatibility": {
           "platforms": [
+            "darwin/amd64",
+            "darwin/arm64",
             "linux/amd64",
             "linux/arm64"
           ]
@@ -37,7 +39,7 @@
           }
         ]
       },
-      "definitionDigest": "sha256:33ade569a251f62996620a5d3c1ef879d89ed892b9c406df556023705e085786"
+      "definitionDigest": "sha256:9d79ea4ef2e9371f6103d3d16dab43065a96be1421e93c39b7211aea4d191d19"
     }
   ]
 }

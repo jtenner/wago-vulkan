@@ -11,7 +11,7 @@ func TestVulkanRoundTrip(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			inst, p := fixture(t, mode, Options{})
 			// A real negative VkResult must cross the GC and pointer import ABIs.
-			if got := int32(invoke(t, inst, "badExtension")[0]); got != -7 {
+			if got := int32(invoke(t, inst, "badPortableExtension")[0]); got != -7 {
 				t.Fatalf("VkResult: got %d, want VK_ERROR_EXTENSION_NOT_PRESENT (-7)", got)
 			}
 			initialize(t, inst)

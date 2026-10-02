@@ -24,16 +24,25 @@ static uint32_t barrier_events;
 static const void *barrier_events_guest;
 static const void *barrier_events_native;
 
-void __wrap_vkCmdSetDepthBias(VkCommandBuffer cmd,float constant,float clamp,float slope) {
+void wv_test_vkCmdSetDepthBias(VkCommandBuffer cmd,float constant,float clamp,float slope) {
     scalar_calls++;
     uint32_t clamp_bits;memcpy(&clamp_bits,&clamp,4);
     assert((uintptr_t)cmd==17 && constant==-0.5f && slope==1.0f);
     assert(clamp_bits==UINT32_C(0x80000000)); // retain negative zero's exact bits
 }
 
-uint64_t __wrap_wv_dispatch(int command,const uint64_t *args) {
+uint64_t wv_dispatch(int command,const uint64_t *args) {
     calls++;
     assert(command==expected);
+    if(command==WV_vkCreateMetalSurfaceEXT) {
+        const VkMetalSurfaceCreateInfoEXT *info=(const void*)(uintptr_t)args[1];
+        assert(args[0]==17 && args[2]==0);
+        assert(info->sType==VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT);
+        assert(info->pNext==NULL && info->flags==0);
+        assert((uintptr_t)info->pLayer==UINT64_C(0x123456789abcdef0));
+        memcpy((void*)(uintptr_t)args[3],&handle,8);
+        return (uint64_t)(int64_t)VK_ERROR_SURFACE_LOST_KHR;
+    }
     if(command==WV_vkCreateDevice) {
         const VkDeviceCreateInfo *info=(const void*)(uintptr_t)args[1];
         assert(args[0]==17 && args[2]==0);
@@ -144,6 +153,30 @@ uint64_t __wrap_wv_dispatch(int command,const uint64_t *args) {
 static void buffer(wv_context *c,int arg,void *data,size_t bytes,int width,uint64_t offset) {
     c->buffers[arg]=(wv_buffer){data,bytes,(uint8_t)width,1};
     c->input[arg]=offset;c->args[arg]=offset;
+}
+static void metal_surface(wv_context *c,int width) {
+    _Alignas(16) uint8_t arena[128]={0},before[128];
+    if(width==32) {
+        wv32_VkMetalSurfaceCreateInfoEXT *info=(void*)arena;
+        info->sType=VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+        info->pLayer=handle;
+    } else {
+        wv64_VkMetalSurfaceCreateInfoEXT *info=(void*)arena;
+        info->sType=VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+        info->pLayer=handle;
+    }
+    memcpy(before,arena,sizeof(arena));
+    wv_reset(c);c->args[0]=c->input[0]=17;
+    buffer(c,1,arena,sizeof(arena),width,0);
+    buffer(c,3,arena,sizeof(arena),width,64);
+    expected=WV_vkCreateMetalSurfaceEXT;
+    assert(wv_invoke(c,expected)==WV_OK);
+    assert((int32_t)c->result==VK_ERROR_SURFACE_LOST_KHR);
+    uint64_t out;memcpy(&out,arena+64,8);assert(out==handle);
+    // A native CAMetalLayer address is 64-bit even in the Wasm32 wire layout.
+    // It is never a guest offset or a target for bridge traversal.
+    assert(!memcmp(arena,before,64));
+    for(int i=0;i<WV_MAX_ARGS;i++) assert(c->buffers[i].base==NULL && c->args[i]==0);
 }
 static void device(wv_context *c,int width) {
     _Alignas(16) uint8_t arena[256]={0},before[256];
@@ -377,6 +410,7 @@ int main(void) {
     wv_direct_vkCmdSetDepthBias(17,UINT32_C(0xbf000000),UINT32_C(0x80000000),UINT32_C(0x3f800000));
     assert(scalar_calls==1);
     wv_context *c=wv_new(32*1024*1024);assert(c);
+    metal_surface(c,32);metal_surface(c,64);
     device(c,64);device(c,32);properties(c);present(c);descriptors(c);errors(c);viewports(c);pipelines(c);errors(c);
     wv_free(c);
     scratch_shapes();

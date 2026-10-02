@@ -4,8 +4,9 @@
   "extensions": [
     "VK_KHR_surface",
     "VK_KHR_swapchain",
-    "VK_KHR_xlib_surface"
+    "VK_KHR_xlib_surface",
+    "VK_EXT_metal_surface"
   ],
-  "commands": 151,
-  "structures": 111
+  "commands": 152,
+  "structures": 112
 }

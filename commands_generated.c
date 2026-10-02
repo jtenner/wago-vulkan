@@ -910,6 +910,11 @@ _Static_assert(offsetof(VkXlibSurfaceCreateInfoKHR, pNext) == 8, "VkXlibSurfaceC
 _Static_assert(offsetof(VkXlibSurfaceCreateInfoKHR, flags) == 16, "VkXlibSurfaceCreateInfoKHR.flags native offset");
 _Static_assert(offsetof(VkXlibSurfaceCreateInfoKHR, dpy) == 24, "VkXlibSurfaceCreateInfoKHR.dpy native offset");
 _Static_assert(offsetof(VkXlibSurfaceCreateInfoKHR, window) == 32, "VkXlibSurfaceCreateInfoKHR.window native offset");
+_Static_assert(sizeof(VkMetalSurfaceCreateInfoEXT) == 32, "VkMetalSurfaceCreateInfoEXT native size");
+_Static_assert(offsetof(VkMetalSurfaceCreateInfoEXT, sType) == 0, "VkMetalSurfaceCreateInfoEXT.sType native offset");
+_Static_assert(offsetof(VkMetalSurfaceCreateInfoEXT, pNext) == 8, "VkMetalSurfaceCreateInfoEXT.pNext native offset");
+_Static_assert(offsetof(VkMetalSurfaceCreateInfoEXT, flags) == 16, "VkMetalSurfaceCreateInfoEXT.flags native offset");
+_Static_assert(offsetof(VkMetalSurfaceCreateInfoEXT, pLayer) == 24, "VkMetalSurfaceCreateInfoEXT.pLayer native offset");
 static const wv_field fields_VkAcquireNextImageInfoKHR[] = {
     {0, 0, 228, 0, 1, -1, -1, 0, 0, 1, 0},
     {4, 8, 258, WV_POINTER|WV_PNEXT, 1, -1, -1, 0, 0, 1, 0},
@@ -1919,6 +1924,12 @@ static const wv_field fields_VkXlibSurfaceCreateInfoKHR[] = {
     {16, 24, 0, WV_POINTER|WV_EXTERNAL|WV_WRITE, 1, -1, -1, 0, 0, 1, 0},
     {24, 32, 250, 0, 1, -1, -1, 0, 0, 1, 0},
 };
+static const wv_field fields_VkMetalSurfaceCreateInfoEXT[] = {
+    {0, 0, 228, 0, 1, -1, -1, 0, 0, 1, 0},
+    {4, 8, 258, WV_POINTER|WV_PNEXT, 1, -1, -1, 0, 0, 1, 0},
+    {8, 16, 260, 0, 1, -1, -1, 0, 0, 1, 0},
+    {16, 24, 259, WV_POINTER|WV_EXTERNAL, 1, -1, -1, 0, 0, 1, 0},
+};
 const wv_type wv_types[] = {
     {8, 8, 8, WV_SCALAR, 0, 0, 0, NULL}, // Display
     {4, 8, 8, WV_SCALAR, 0, 1, 0, NULL}, // PFN_vkAllocationFunction
@@ -2179,6 +2190,9 @@ const wv_type wv_types[] = {
     {8, 8, 8, WV_SCALAR, 0, 0, 0, NULL}, // uint64_t
     {1, 1, 1, WV_SCALAR, 0, 0, 0, NULL}, // uint8_t
     {1, 1, 1, WV_SCALAR, 0, 0, 0, NULL}, // void
+    {8, 8, 8, WV_SCALAR, 0, 0, 0, NULL}, // CAMetalLayer
+    {4, 4, 4, WV_SCALAR, 0, 0, 0, NULL}, // VkMetalSurfaceCreateFlagsEXT
+    {24, 32, 8, WV_STRUCT, 4, 1, 1, fields_VkMetalSurfaceCreateInfoEXT}, // VkMetalSurfaceCreateInfoEXT
 };
 const size_t wv_type_count = sizeof(wv_types)/sizeof(wv_types[0]);
 int wv_chain_type(uint32_t stype) { switch(stype) {
@@ -2234,6 +2248,7 @@ case VK_STRUCTURE_TYPE_SUBMIT_INFO: return 229;
 case VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR: return 241;
 case VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET: return 247;
 case VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR: return 249;
+case VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT: return 261;
 default: return -1; }}
 int wv_prepare(wv_context *ctx, int command) { switch(command) {
 case 0:
@@ -2873,6 +2888,13 @@ case 150:
     if(ctx->buffers[2].present) ctx->args[2] = (uint64_t)(uintptr_t)wv_root(ctx, 2, 88, ctx->input[1], 0); else ctx->args[2]=0;
     if(ctx->error) return ctx->error;
     return WV_OK;
+case 151:
+    if(ctx->buffers[1].present) ctx->args[1] = (uint64_t)(uintptr_t)wv_root(ctx, 1, 261, 1, 0); else ctx->args[1]=0;
+    if(ctx->error) return ctx->error;
+    if(ctx->input[2]) return WV_UNSUPPORTED; ctx->args[2]=0;
+    if(ctx->buffers[3].present) ctx->args[3] = (uint64_t)(uintptr_t)wv_root(ctx, 3, 237, 1, 1); else ctx->args[3]=0;
+    if(ctx->error) return ctx->error;
+    return WV_OK;
 default: return WV_UNSUPPORTED; }}
 uint64_t wv_dispatch(int command, const uint64_t *a) { switch(command) {
 case 0: return (uint64_t)vkAcquireNextImage2KHR((VkDevice)(uintptr_t)a[0], (const VkAcquireNextImageInfoKHR*)(uintptr_t)a[1], (uint32_t*)(uintptr_t)a[2]);
@@ -2949,7 +2971,7 @@ case 70: return (uint64_t)vkCreateSampler((VkDevice)(uintptr_t)a[0], (const VkSa
 case 71: return (uint64_t)vkCreateSemaphore((VkDevice)(uintptr_t)a[0], (const VkSemaphoreCreateInfo*)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2], (VkSemaphore*)(uintptr_t)a[3]);
 case 72: return (uint64_t)vkCreateShaderModule((VkDevice)(uintptr_t)a[0], (const VkShaderModuleCreateInfo*)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2], (VkShaderModule*)(uintptr_t)a[3]);
 case 73: return (uint64_t)vkCreateSwapchainKHR((VkDevice)(uintptr_t)a[0], (const VkSwapchainCreateInfoKHR*)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2], (VkSwapchainKHR*)(uintptr_t)a[3]);
-case 74: return (uint64_t)vkCreateXlibSurfaceKHR((VkInstance)(uintptr_t)a[0], (const VkXlibSurfaceCreateInfoKHR*)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2], (VkSurfaceKHR*)(uintptr_t)a[3]);
+case 74: return (uint64_t)wv_create_xlib_surface((VkInstance)(uintptr_t)a[0], (const VkXlibSurfaceCreateInfoKHR*)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2], (VkSurfaceKHR*)(uintptr_t)a[3]);
 case 75: vkDestroyBuffer((VkDevice)(uintptr_t)a[0], (VkBuffer)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2]); return 0;
 case 76: vkDestroyBufferView((VkDevice)(uintptr_t)a[0], (VkBufferView)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2]); return 0;
 case 77: vkDestroyCommandPool((VkDevice)(uintptr_t)a[0], (VkCommandPool)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2]); return 0;
@@ -3005,7 +3027,7 @@ case 126: return (uint64_t)vkGetPhysicalDeviceSurfaceCapabilitiesKHR((VkPhysical
 case 127: return (uint64_t)vkGetPhysicalDeviceSurfaceFormatsKHR((VkPhysicalDevice)(uintptr_t)a[0], (VkSurfaceKHR)(uintptr_t)a[1], (uint32_t*)(uintptr_t)a[2], (VkSurfaceFormatKHR*)(uintptr_t)a[3]);
 case 128: return (uint64_t)vkGetPhysicalDeviceSurfacePresentModesKHR((VkPhysicalDevice)(uintptr_t)a[0], (VkSurfaceKHR)(uintptr_t)a[1], (uint32_t*)(uintptr_t)a[2], (VkPresentModeKHR*)(uintptr_t)a[3]);
 case 129: return (uint64_t)vkGetPhysicalDeviceSurfaceSupportKHR((VkPhysicalDevice)(uintptr_t)a[0], (uint32_t)(uintptr_t)a[1], (VkSurfaceKHR)(uintptr_t)a[2], (VkBool32*)(uintptr_t)a[3]);
-case 130: return (uint64_t)vkGetPhysicalDeviceXlibPresentationSupportKHR((VkPhysicalDevice)(uintptr_t)a[0], (uint32_t)(uintptr_t)a[1], (Display*)(uintptr_t)a[2], (VisualID)(uintptr_t)a[3]);
+case 130: return (uint64_t)wv_xlib_presentation_support((VkPhysicalDevice)(uintptr_t)a[0], (uint32_t)(uintptr_t)a[1], (Display*)(uintptr_t)a[2], (VisualID)(uintptr_t)a[3]);
 case 131: return (uint64_t)vkGetPipelineCacheData((VkDevice)(uintptr_t)a[0], (VkPipelineCache)(uintptr_t)a[1], (size_t*)(uintptr_t)a[2], (void*)(uintptr_t)a[3]);
 case 132: return (uint64_t)vkGetQueryPoolResults((VkDevice)(uintptr_t)a[0], (VkQueryPool)(uintptr_t)a[1], (uint32_t)(uintptr_t)a[2], (uint32_t)(uintptr_t)a[3], (size_t)(uintptr_t)a[4], (void*)(uintptr_t)a[5], (VkDeviceSize)(uintptr_t)a[6], (VkQueryResultFlags)(uintptr_t)a[7]);
 case 133: vkGetRenderAreaGranularity((VkDevice)(uintptr_t)a[0], (VkRenderPass)(uintptr_t)a[1], (VkExtent2D*)(uintptr_t)a[2]); return 0;
@@ -3026,6 +3048,7 @@ case 147: return (uint64_t)vkSetEvent((VkDevice)(uintptr_t)a[0], (VkEvent)(uintp
 case 148: vkUnmapMemory((VkDevice)(uintptr_t)a[0], (VkDeviceMemory)(uintptr_t)a[1]); return 0;
 case 149: vkUpdateDescriptorSets((VkDevice)(uintptr_t)a[0], (uint32_t)(uintptr_t)a[1], (const VkWriteDescriptorSet*)(uintptr_t)a[2], (uint32_t)(uintptr_t)a[3], (const VkCopyDescriptorSet*)(uintptr_t)a[4]); return 0;
 case 150: return (uint64_t)vkWaitForFences((VkDevice)(uintptr_t)a[0], (uint32_t)(uintptr_t)a[1], (const VkFence*)(uintptr_t)a[2], (VkBool32)(uintptr_t)a[3], (uint64_t)(uintptr_t)a[4]);
+case 151: return (uint64_t)wv_create_metal_surface((VkInstance)(uintptr_t)a[0], (const VkMetalSurfaceCreateInfoEXT*)(uintptr_t)a[1], (const VkAllocationCallbacks*)(uintptr_t)a[2], (VkSurfaceKHR*)(uintptr_t)a[3]);
 default: return 0; }}
 uint64_t wv_direct_vkBindBufferMemory(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3) { return (uint64_t)vkBindBufferMemory((VkDevice)(uintptr_t)a0, (VkBuffer)(uintptr_t)a1, (VkDeviceMemory)(uintptr_t)a2, (VkDeviceSize)(uintptr_t)a3); }
 uint64_t wv_direct_vkBindImageMemory(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3) { return (uint64_t)vkBindImageMemory((VkDevice)(uintptr_t)a0, (VkImage)(uintptr_t)a1, (VkDeviceMemory)(uintptr_t)a2, (VkDeviceSize)(uintptr_t)a3); }
@@ -3080,7 +3103,7 @@ uint64_t wv_direct_vkEndCommandBuffer(uint64_t a0) { return (uint64_t)vkEndComma
 uint64_t wv_direct_vkFreeMemory(uint64_t a0, uint64_t a1, uint64_t a2) { vkFreeMemory((VkDevice)(uintptr_t)a0, (VkDeviceMemory)(uintptr_t)a1, (const VkAllocationCallbacks*)(uintptr_t)a2); return 0; }
 uint64_t wv_direct_vkGetEventStatus(uint64_t a0, uint64_t a1) { return (uint64_t)vkGetEventStatus((VkDevice)(uintptr_t)a0, (VkEvent)(uintptr_t)a1); }
 uint64_t wv_direct_vkGetFenceStatus(uint64_t a0, uint64_t a1) { return (uint64_t)vkGetFenceStatus((VkDevice)(uintptr_t)a0, (VkFence)(uintptr_t)a1); }
-uint64_t wv_direct_vkGetPhysicalDeviceXlibPresentationSupportKHR(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3) { return (uint64_t)vkGetPhysicalDeviceXlibPresentationSupportKHR((VkPhysicalDevice)(uintptr_t)a0, (uint32_t)(uintptr_t)a1, (Display*)(uintptr_t)a2, (VisualID)(uintptr_t)a3); }
+uint64_t wv_direct_vkGetPhysicalDeviceXlibPresentationSupportKHR(uint64_t a0, uint64_t a1, uint64_t a2, uint64_t a3) { return (uint64_t)wv_xlib_presentation_support((VkPhysicalDevice)(uintptr_t)a0, (uint32_t)(uintptr_t)a1, (Display*)(uintptr_t)a2, (VisualID)(uintptr_t)a3); }
 uint64_t wv_direct_vkQueueWaitIdle(uint64_t a0) { return (uint64_t)vkQueueWaitIdle((VkQueue)(uintptr_t)a0); }
 uint64_t wv_direct_vkResetCommandBuffer(uint64_t a0, uint64_t a1) { return (uint64_t)vkResetCommandBuffer((VkCommandBuffer)(uintptr_t)a0, (VkCommandBufferResetFlags)(uintptr_t)a1); }
 uint64_t wv_direct_vkResetCommandPool(uint64_t a0, uint64_t a1, uint64_t a2) { return (uint64_t)vkResetCommandPool((VkDevice)(uintptr_t)a0, (VkCommandPool)(uintptr_t)a1, (VkCommandPoolResetFlags)(uintptr_t)a2); }

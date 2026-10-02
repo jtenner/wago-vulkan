@@ -6,22 +6,32 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	vulkan "github.com/jtenner/wago-vulkan"
 	wago "github.com/wago-org/wago"
 )
 
 func run() error {
-	abi := flag.String("abi", "gc", "guest interface: gc, wasm32, wasm64")
+	defaultABI := "gc"
+	if runtime.GOOS == "darwin" {
+		defaultABI = "wasm32"
+	}
+	abi := flag.String("abi", defaultABI, "guest interface: gc, wasm32, wasm64")
 	flag.Parse()
 	if *abi != "gc" && *abi != "wasm32" && *abi != "wasm64" {
 		return fmt.Errorf("unsupported ABI %q", *abi)
+	}
+	features := wago.SupportedFeatures() & wago.CoreFeaturesV3
+	if *abi == "gc" && !features.IsEnabled(wago.CoreFeatureGC) ||
+		*abi == "wasm64" && !features.IsEnabled(wago.CoreFeatureMemory64) {
+		return fmt.Errorf("pinned Wago does not support %s guests on %s/%s; try -abi wasm32", *abi, runtime.GOOS, runtime.GOARCH)
 	}
 	data, err := os.ReadFile("testdata/" + *abi + ".wasm")
 	if err != nil {
 		return err
 	}
-	rt := wago.NewRuntime(wago.WithRuntimeConfig(wago.NewRuntimeConfig().WithCoreFeatures(wago.CoreFeaturesV3)))
+	rt := wago.NewRuntime(wago.WithRuntimeConfig(wago.NewRuntimeConfig().WithCoreFeatures(features)))
 	defer rt.Close()
 	if err := rt.LoadPlugins(context.Background(), vulkan.PluginSet()); err != nil {
 		return err
@@ -31,6 +41,11 @@ func run() error {
 		return err
 	}
 	defer mod.Close()
+	if *abi == "gc" {
+		if admission := mod.Compiled().GCNativeRootAdmission(); !admission.Exact {
+			return fmt.Errorf("pinned Wago cannot admit this GC host-boundary fixture: %s; try -abi wasm32", admission.Reason)
+		}
+	}
 	inst, err := rt.Instantiate(context.Background(), mod)
 	if err != nil {
 		return err

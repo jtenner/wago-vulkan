@@ -3,6 +3,7 @@ package vulkan
 import (
 	"context"
 	"embed"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -16,6 +17,11 @@ var guests embed.FS
 
 func fixture(tb testing.TB, mode string, opts Options) (*wago.Instance, *Plugin) {
 	tb.Helper()
+	features := wago.SupportedFeatures() & wago.CoreFeaturesV3
+	if runtime.GOOS == "darwin" && (mode == "gc" && !features.IsEnabled(wago.CoreFeatureGC) ||
+		mode == "wasm64" && !features.IsEnabled(wago.CoreFeatureMemory64)) {
+		tb.Skipf("pinned Wago does not support %s guests on %s/%s", mode, runtime.GOOS, runtime.GOARCH)
+	}
 	data, err := guests.ReadFile("testdata/" + mode + ".wasm")
 	if err != nil {
 		tb.Fatal(err)
@@ -23,7 +29,7 @@ func fixture(tb testing.TB, mode string, opts Options) (*wago.Instance, *Plugin)
 	p := New(opts)
 	set := PluginSet(opts)
 	set.Providers[0].New = func() wago.Plugin { return p }
-	rt := wago.NewRuntime(wago.WithRuntimeConfig(wago.NewRuntimeConfig().WithCoreFeatures(wago.CoreFeaturesV3)))
+	rt := wago.NewRuntime(wago.WithRuntimeConfig(wago.NewRuntimeConfig().WithCoreFeatures(features)))
 	tb.Cleanup(func() {
 		if err := rt.Close(); err != nil {
 			tb.Error(err)
@@ -37,6 +43,11 @@ func fixture(tb testing.TB, mode string, opts Options) (*wago.Instance, *Plugin)
 		tb.Fatal(err)
 	}
 	tb.Cleanup(func() { mod.Close() })
+	if mode == "gc" && runtime.GOOS == "darwin" {
+		if admission := mod.Compiled().GCNativeRootAdmission(); !admission.Exact {
+			tb.Skipf("pinned Wago cannot admit this GC host-boundary fixture: %s", admission.Reason)
+		}
+	}
 	inst, err := rt.Instantiate(context.Background(), mod)
 	if err != nil {
 		tb.Fatal(err)
@@ -81,6 +92,20 @@ func TestSignaturesAndActivation(t *testing.T) {
 			if p.free != nil {
 				t.Fatal("activation allocated a native call frame")
 			}
+		})
+	}
+}
+
+func TestGuestExtensionMatching(t *testing.T) {
+	// CPU-only checks of the guest's portability-extension discovery helper:
+	// empty list, prefix mismatch, match after a nonmatch, and absent name.
+	for _, mode := range []string{"gc", "wasm32", "wasm64"} {
+		t.Run(mode, func(t *testing.T) {
+			inst, _ := fixture(t, mode, Options{})
+			if got := invoke(t, inst, "extensionMatching")[0]; got != 1 {
+				t.Fatalf("extension matching: got %d, want 1", got)
+			}
+			invoke(t, inst, "extensionNegotiation")
 		})
 	}
 }
@@ -141,8 +166,10 @@ func TestGuestValidation(t *testing.T) {
 			}
 		})
 	}
-	inst, _ := fixture(t, "gc", Options{ScratchLimit: 4096})
-	expectTrap(t, inst, "badExtension", "scratch limit")
+	t.Run("gcScratchLimit", func(t *testing.T) {
+		inst, _ := fixture(t, "gc", Options{ScratchLimit: 4096})
+		expectTrap(t, inst, "badExtension", "scratch limit")
+	})
 }
 
 func expectTrap(tb testing.TB, inst *wago.Instance, name, contains string) {

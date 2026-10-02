@@ -149,3 +149,4 @@ vkSetEvent(device: i64, event: i64) -> i32
 vkUnmapMemory(device: i64, memory: i64) -> void
 vkUpdateDescriptorSets(device: i64, descriptorWriteCount: i32, pDescriptorWrites: i32, descriptorCopyCount: i32, pDescriptorCopies: i32) -> void
 vkWaitForFences(device: i64, fenceCount: i32, pFences: i32, waitAll: i32, timeout: i64) -> i32
+vkCreateMetalSurfaceEXT(instance: i64, pCreateInfo: i32, pAllocator: i32, pSurface: i32) -> i32

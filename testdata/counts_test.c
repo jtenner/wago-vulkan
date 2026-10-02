@@ -19,7 +19,7 @@ static void buffer(wv_context *ctx, int arg, void *data, size_t bytes,
     ctx->args[arg] = offset;
 }
 
-uint64_t __wrap_wv_dispatch(int command, const uint64_t *args) {
+uint64_t wv_dispatch(int command, const uint64_t *args) {
     assert(command == expected_command);
     calls++;
 
