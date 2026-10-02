@@ -39,7 +39,7 @@ import (
 )
 
 rt := wago.NewRuntime(wago.WithRuntimeConfig(
-    wago.NewRuntimeConfig().WithCoreFeatures(wago.CoreFeaturesV3),
+    wago.NewRuntimeConfig().WithCoreFeatures(wago.SupportedFeatures() & wago.CoreFeaturesV3),
 ))
 defer rt.Close()
 err := rt.LoadPlugins(context.Background(), vulkan.PluginSet(vulkan.Options{
@@ -77,7 +77,7 @@ brew install pkgconf vulkan-headers vulkan-loader molten-vk
 export PKG_CONFIG_PATH="$(brew --prefix vulkan-loader)/lib/pkgconfig:$(brew --prefix vulkan-headers)/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 export VK_DRIVER_FILES="$(brew --prefix molten-vk)/etc/vulkan/icd.d/MoltenVK_icd.json"
 go test ./...                       # no GPU required
-go run ./examples/headless -abi gc # requires a usable Metal device
+go run ./examples/headless -abi wasm32 # requires a usable Metal device
 ```
 
 Alternatively, use the [macOS Vulkan SDK](https://vulkan.lunarg.com/doc/sdk/latest/mac/getting_started.html)
@@ -85,6 +85,15 @@ and its environment setup (`setup-env.sh`). `pkg-config --cflags --libs vulkan`
 must find matching headers and `libvulkan.dylib`. This package links the Vulkan
 loader; installing only `libMoltenVK.dylib` is not enough. Do not mix Intel and
 Apple Silicon Go/libraries. No XQuartz or X11 library is required on macOS.
+
+The pinned Wago runtime has additional guest-ABI limits independent of Vulkan:
+Intel macOS does not advertise GC or memory64, and the included GC fixture is
+not admitted on Apple Silicon because exact host-boundary root maps are
+unavailable for it. Start with `wasm32` on either Mac; `wasm64` is also a candidate
+on Apple Silicon. The example reports unsupported modes before instantiation,
+and Mac tests explicitly skip them using Wago's feature/root-admission APIs.
+A skipped ABI is **not** validated support. The GC bridge layout still has native
+mock coverage. No Wago compiler changes or dependency updates are included.
 
 Guests retain control of instance/device creation. They must:
 

@@ -22,7 +22,11 @@ GOEXPERIMENT=cgocheck2 go test -count=1 ./...
 bash scripts/test-native.sh
 ```
 
-Expected: Go packages pass and the native script prints four `PASS:` lines.
+Expected: supported Go guest modes pass and the native script prints four
+`PASS:` lines. Use `go test -v -count=1 ./...` to see explicit runtime-capability
+skips. The pinned Wago runtime does not advertise GC/memory64 on Intel macOS;
+the included GC fixture also lacks exact host-boundary root-map admission on
+Apple Silicon. Skips are unsupported/unverified ABIs, not passes.
 These are compile/link, Wago CPU/ABI tests, and mocked native Vulkan calls. They
 do **not** establish that MoltenVK can enumerate a Metal device or render.
 Generated files are checked in; Python and `wasm-tools` are not prerequisites.
@@ -37,12 +41,14 @@ Check `pkg-config --cflags --libs vulkan` before building.
 set -o pipefail
 go test -count=1 -v -tags integration ./... 2>&1 | tee macos-integration.log
 GOEXPERIMENT=cgocheck2 go test -count=1 -v -tags integration ./...
-go run ./examples/headless -abi gc
 go run ./examples/headless -abi wasm32
+# Apple Silicon only, where the pinned Wago runtime advertises memory64:
 go run ./examples/headless -abi wasm64
 ```
 
-Expected: `TestVulkanRoundTrip/gc`, `/wasm32`, and `/wasm64` pass. Each example
+Expected: `TestVulkanRoundTrip/wasm32` passes on either Mac, with `/wasm64`
+also expected on Apple Silicon. Unsupported GC/Intel-memory64 fixtures are
+explicitly skipped with the runtime's reason. Each supported example
 prints `vulkan.<abi>: Vulkan <version>, queue <nonzero handle>, mapped memory round trip passed`.
 This reaches the real loader and MoltenVK, negotiates portability extensions,
 creates an instance/device/queue, queries properties, and allocates/maps/copies
@@ -51,7 +57,7 @@ memory. It does not submit a rendering workload or prove visible presentation.
 If it fails, preserve the first failure and run one diagnostic attempt:
 
 ```sh
-VK_LOADER_DEBUG=error,warn,driver go run ./examples/headless -abi gc > macos-loader.log 2>&1
+VK_LOADER_DEBUG=error,warn,driver go run ./examples/headless -abi wasm32 > macos-loader.log 2>&1
 ```
 
 Do not suppress failures or treat a missing Metal device as a pass. A no-device
@@ -72,7 +78,7 @@ system_profiler SPDisplaysDataType
 ```
 
 Return the commit, Mac model/chip, macOS version, Go/tool versions, which steps
-passed, and the first failing command plus `macos-integration.log` and, if
+passed, which ABI cases were skipped, and the first failing command plus `macos-integration.log` and, if
 needed, `macos-loader.log`. Redact serial numbers or other personal identifiers
 if present in hardware output. Do not dump your full environment.
 
