@@ -55,7 +55,7 @@ The caller manages Vulkan object lifetimes and Vulkan synchronization.
 
 For Wago's plugin manager, the module exports its default provider through
 `github.com/jtenner/wago-vulkan/register`. [wago.json](wago.json) describes the
-experimental 0.1.0 release; [wago.providers.json](wago.providers.json) contains
+experimental 0.1.1 release; [wago.providers.json](wago.providers.json) contains
 the immutable definition and its digest. Native build dependencies above also
 apply when Wago builds a runtime containing this plugin. Embedding hosts use
 `Provider(options)` for a different memory index or scratch limit.

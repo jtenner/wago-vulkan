@@ -6,7 +6,7 @@
       "definition": {
         "id": "github.com/jtenner/wago-vulkan",
         "name": "Vulkan",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "description": "Packed GC, Wasm32 and Wasm64 Vulkan FFI",
         "stability": "experimental",
         "compatibility": {
@@ -39,7 +39,7 @@
           }
         ]
       },
-      "definitionDigest": "sha256:9d79ea4ef2e9371f6103d3d16dab43065a96be1421e93c39b7211aea4d191d19"
+      "definitionDigest": "sha256:11ed6a1e48a5eb6dabbcd312a25b6e21ec7700739489ce292c1f3130ed56c0fb"
     }
   ]
 }

@@ -3,14 +3,14 @@
   "plugins": {},
   "package": {
     "module": "github.com/jtenner/wago-vulkan",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "name": "Vulkan",
     "description": "Packed GC, Wasm32 and Wasm64 Vulkan FFI",
     "stability": "experimental",
     "license": "MIT",
     "repository": "https://github.com/jtenner/wago-vulkan",
     "authors": [{"name": "jtenner"}],
-    "platforms": ["linux/amd64", "linux/arm64", "darwin/amd64", "darwin/arm64"],
+    "platforms": ["darwin/amd64", "darwin/arm64", "linux/amd64", "linux/arm64"],
     "category": "graphics",
     "tags": ["vulkan", "graphics", "wasmgc", "wasm32", "wasm64", "ffi"]
   }
