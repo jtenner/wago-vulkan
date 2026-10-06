@@ -129,7 +129,9 @@ touches an Xlib address. Existing Linux Xlib dispatch is preserved.
 
 See the [Mac smoke-test checklist](docs/macos-testing.md) for commands, expected
 results, and the distinction between CPU checks, headless device access and
-actual surface/rendering validation.
+actual surface/rendering validation. For the one-command Intel Mac run with GPU
+compute and the visible **thank you for testing!** window, see
+[the smoke runner instructions](docs/macos-smoke.md).
 
 ## Function shapes
 

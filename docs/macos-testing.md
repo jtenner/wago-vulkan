@@ -1,5 +1,10 @@
 # macOS / MoltenVK smoke-test checklist
 
+For the one-command Intel Mac hardware run (including GPU compute and a visible
+thank-you window through the guest Metal surface import), see
+[macos-smoke.md](macos-smoke.md). The checklist below remains useful for headless
+and CPU/mock checks.
+
 Use a checkout of the proposed change and run from the repository root. This
 checklist is for an available Mac; successful Linux tests do not establish these
 results. Nothing below needs credentials, a paid service, XQuartz, or a window.
@@ -82,14 +87,14 @@ passed, which ABI cases were skipped, and the first failing command plus `macos-
 needed, `macos-loader.log`. Redact serial numbers or other personal identifiers
 if present in hardware output. Do not dump your full environment.
 
-## Presentation still requires a host harness
+## Presentation harness
 
-This change adds the guest `vkCreateMetalSurfaceEXT` import and tests its ABI
-with mocks; it does not include an AppKit renderer. A further hardware test
-needs a host-owned window and `CAMetalLayer`, surface extension enablement,
-surface support/format queries, swapchain creation, actual draw/present, resize,
-and orderly destruction before releasing the layer. A passing headless run
-must not be reported as a passing rendering test.
+The branch now includes `examples/smoke` and `scripts/macos-smoke.sh`: a
+host-owned AppKit/CAMetalLayer harness that calls the guest Metal surface import,
+checks GPU compute correctness, uploads the exact thank-you message, presents,
+resizes/recreates, and tears down. See [macos-smoke.md](macos-smoke.md) for its
+prerequisites and explicit automated/visual results. It still needs a real Intel
+Mac hardware run; headless or Linux success does not validate Metal presentation.
 
 References:
 - [MoltenVK runtime integration](https://github.com/KhronosGroup/MoltenVK/blob/main/Docs/MoltenVK_Runtime_UserGuide.md)

@@ -1,3 +1,4 @@
 .bench-cache/
 __pycache__/
 benchmarks/abi/generated/*.wasm
+.smoke-logs/
