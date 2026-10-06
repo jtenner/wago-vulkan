@@ -150,11 +150,12 @@
     (import "vulkan.wasm64" "vkUnmapMemory" (func $vkUnmapMemory (param i64) (param i64)))
     (import "vulkan.wasm64" "vkUpdateDescriptorSets" (func $vkUpdateDescriptorSets (param i64) (param i32) (param i64) (param i32) (param i64)))
     (import "vulkan.wasm64" "vkWaitForFences" (func $vkWaitForFences (param i64) (param i32) (param i64) (param i32) (param i64) (result i32)))
+    (import "vulkan.wasm64" "vkCreateMetalSurfaceEXT" (func $vkCreateMetalSurfaceEXT (param i64) (param i64) (param i64) (param i64) (result i32)))
     (import "vulkan.wasm64" "writeMapped" (func $writeMapped (param i64 i64 i64)))
     (import "vulkan.wasm64" "readMapped" (func $readMapped (param i64 i64 i64)))
     (import "vulkan.wasm64" "abiVersion" (func $abiVersion (result i32)))
     (import "vulkan.wasm32" "vkGetPhysicalDeviceProperties" (func $wrongWidth (param i64 i32)))
-    (memory i64 1)
+    (memory i64 4)
         (func $put32 (param $a i32) (param $v i32) local.get $a i64.extend_i32_u local.get $v i32.store)
         (func $get32 (param $a i32) (result i32) local.get $a i64.extend_i32_u i32.load)
         (func $put64 (param $a i32) (param $v i64) local.get $a i64.extend_i32_u local.get $v i64.store)
@@ -166,6 +167,119 @@
     (global $allocation (mut i64) (i64.const 0))
     (global $mapped (mut i32) (i32.const 0))
     (func $check (param $r i32) local.get $r if unreachable end)
+    (func $get8 (param $a i32) (result i32)
+      local.get $a i32.const -4 i32.and call $get32
+      local.get $a i32.const 3 i32.and i32.const 8 i32.mul i32.shr_u i32.const 255 i32.and)
+    (func $sameName (param $a i32) (param $b i32) (result i32) (local $i i32) (local $v i32)
+      loop $next
+        local.get $a local.get $i i32.add call $get8 local.tee $v
+        local.get $b local.get $i i32.add call $get8 i32.ne if i32.const 0 return end
+        local.get $v i32.eqz if i32.const 1 return end
+        local.get $i i32.const 1 i32.add local.tee $i i32.const 256 i32.lt_u br_if $next
+      end i32.const 0)
+    (func $hasExtension (param $name i32) (result i32) (local $i i32)
+      block $done loop $next
+        local.get $i i32.const 1064 call $get32 i32.ge_u br_if $done
+        local.get $i i32.const 260 i32.mul i32.const 16384 i32.add local.get $name call $sameName
+        if i32.const 1 return end
+        local.get $i i32.const 1 i32.add local.set $i br $next
+      end end i32.const 0)
+    (func $enableInstanceExtensions (local $n i32)
+      i32.const 528 i32.const 0 call $put32
+      i32.const 2048 call $hasExtension if
+        i32.const 528 i32.const 1 call $put32 ;; VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR
+        i32.const 3072 i64.const 2048 call $put64 i32.const 1 local.set $n
+      end
+      i32.const 2112 call $hasExtension if
+        i32.const 3072 local.get $n i32.const 8 i32.mul i32.add
+        i64.const 2112 call $put64
+        local.get $n i32.const 1 i32.add local.set $n
+      end
+      i32.const 560 local.get $n call $put32
+      i32.const 568 i64.const 3072 call $put64)
+    (func $instanceExtensions
+      ;; Bounded fixture storage: 512 VkExtensionProperties records, 260 bytes each.
+      i32.const 1064 i32.const 512 call $put32 i64.const 0 i64.const 1064 i64.const 16384 call $vkEnumerateInstanceExtensionProperties call $check
+      call $enableInstanceExtensions)
+    (func $enableDeviceExtensions
+      i32.const 648 i32.const 0 call $put32 i32.const 656 i64.const 0 call $put64
+      i32.const 2176 call $hasExtension if
+        i32.const 3136 i64.const 2176 call $put64 i32.const 648 i32.const 1 call $put32
+        i32.const 656 i64.const 3136 call $put64
+      end)
+    (func $deviceExtensions
+      i32.const 1064 i32.const 512 call $put32 global.get $physical i64.const 0 i64.const 1064 i64.const 16384 call $vkEnumerateDeviceExtensionProperties call $check
+      call $enableDeviceExtensions)
+    (func (export "extensionMatching") (result i32)
+      i32.const 1064 i32.const 0 call $put32 i32.const 2176 call $hasExtension i32.eqz
+      i32.const 1064 i32.const 1 call $put32 i32.const 2176 call $hasExtension i32.eqz i32.and
+      i32.const 1064 i32.const 2 call $put32 i32.const 2176 call $hasExtension i32.and
+      i32.const 2048 call $hasExtension i32.eqz i32.and)
+    (func $expect32 (param $address i32) (param $value i32)
+      local.get $address call $get32 local.get $value i32.ne if unreachable end)
+    (func (export "extensionNegotiation")
+      i32.const 1064 i32.const 0 call $put32 call $enableInstanceExtensions call $enableDeviceExtensions
+      i32.const 528 i32.const 0 call $expect32
+      i32.const 560 i32.const 0 call $expect32
+      i32.const 648 i32.const 0 call $expect32
+      i32.const 16384 i32.const 1264536406 call $put32
+i32.const 16388 i32.const 1734300232 call $put32
+i32.const 16392 i32.const 1885303909 call $put32
+i32.const 16396 i32.const 1769175400 call $put32
+i32.const 16400 i32.const 1600938339 call $put32
+i32.const 16404 i32.const 1769366884 call $put32
+i32.const 16408 i32.const 1885300067 call $put32
+i32.const 16412 i32.const 1701867378 call $put32
+i32.const 16416 i32.const 1701409906 call $put32
+i32.const 16420 i32.const 12915 call $put32
+      i32.const 1064 i32.const 1 call $put32 call $enableInstanceExtensions
+      i32.const 528 i32.const 0 call $expect32
+      i32.const 560 i32.const 1 call $expect32
+      i32.const 3072 i32.const 2112 call $expect32
+      i32.const 16384 i32.const 1264536406 call $put32
+i32.const 16388 i32.const 1885295176 call $put32
+i32.const 16392 i32.const 1635021423 call $put32
+i32.const 16396 i32.const 1768712546 call $put32
+i32.const 16400 i32.const 1700755828 call $put32
+i32.const 16404 i32.const 1701672302 call $put32
+i32.const 16408 i32.const 1769234802 call $put32
+i32.const 16412 i32.const 28271 call $put32 call $enableInstanceExtensions
+      i32.const 528 i32.const 1 call $expect32
+      i32.const 560 i32.const 1 call $expect32
+      i32.const 3072 i32.const 2048 call $expect32
+      i32.const 16644 i32.const 1264536406 call $put32
+i32.const 16648 i32.const 1734300232 call $put32
+i32.const 16652 i32.const 1885303909 call $put32
+i32.const 16656 i32.const 1769175400 call $put32
+i32.const 16660 i32.const 1600938339 call $put32
+i32.const 16664 i32.const 1769366884 call $put32
+i32.const 16668 i32.const 1885300067 call $put32
+i32.const 16672 i32.const 1701867378 call $put32
+i32.const 16676 i32.const 1701409906 call $put32
+i32.const 16680 i32.const 12915 call $put32
+      i32.const 1064 i32.const 2 call $put32 call $enableInstanceExtensions
+      i32.const 528 i32.const 1 call $expect32
+      i32.const 560 i32.const 2 call $expect32
+      i32.const 568 i32.const 3072 call $expect32
+      i32.const 3072 i32.const 2048 call $expect32
+      i32.const 3080 i32.const 2112 call $expect32
+      i32.const 16384 i32.const 1264536406 call $put32
+i32.const 16388 i32.const 1885295176 call $put32
+i32.const 16392 i32.const 1635021423 call $put32
+i32.const 16396 i32.const 1768712546 call $put32
+i32.const 16400 i32.const 1935636852 call $put32
+i32.const 16404 i32.const 1702060661 call $put32
+i32.const 16408 i32.const 116 call $put32
+      i32.const 1064 i32.const 1 call $put32 call $enableDeviceExtensions
+      i32.const 648 i32.const 1 call $expect32
+      i32.const 656 i32.const 3136 call $expect32
+      i32.const 3136 i32.const 2176 call $expect32
+      ;; Reusing the helper must remove stale flags/extensions as well.
+      i32.const 1064 i32.const 0 call $put32 call $enableInstanceExtensions call $enableDeviceExtensions
+      i32.const 528 i32.const 0 call $expect32
+      i32.const 560 i32.const 0 call $expect32
+      i32.const 648 i32.const 0 call $expect32
+      i32.const 656 i32.const 0 call $expect32)
     (func (export "version") (result i32) call $abiVersion)
     (func (export "prepare")
 
@@ -178,13 +292,63 @@ i32.const 1564 i32.const 1953720696 call $put32
 i32.const 1568 i32.const 1601465957 call $put32
 i32.const 1572 i32.const 1702131813 call $put32
 i32.const 1576 i32.const 1869181806 call $put32
-i32.const 1580 i32.const 110 call $put32 i32.const 1536 i64.const 1552 call $put64)
+i32.const 1580 i32.const 110 call $put32
+i32.const 2048 i32.const 1264536406 call $put32
+i32.const 2052 i32.const 1885295176 call $put32
+i32.const 2056 i32.const 1635021423 call $put32
+i32.const 2060 i32.const 1768712546 call $put32
+i32.const 2064 i32.const 1700755828 call $put32
+i32.const 2068 i32.const 1701672302 call $put32
+i32.const 2072 i32.const 1769234802 call $put32
+i32.const 2076 i32.const 28271 call $put32
+i32.const 2112 i32.const 1264536406 call $put32
+i32.const 2116 i32.const 1734300232 call $put32
+i32.const 2120 i32.const 1885303909 call $put32
+i32.const 2124 i32.const 1769175400 call $put32
+i32.const 2128 i32.const 1600938339 call $put32
+i32.const 2132 i32.const 1769366884 call $put32
+i32.const 2136 i32.const 1885300067 call $put32
+i32.const 2140 i32.const 1701867378 call $put32
+i32.const 2144 i32.const 1701409906 call $put32
+i32.const 2148 i32.const 12915 call $put32
+i32.const 2176 i32.const 1264536406 call $put32
+i32.const 2180 i32.const 1885295176 call $put32
+i32.const 2184 i32.const 1635021423 call $put32
+i32.const 2188 i32.const 1768712546 call $put32
+i32.const 2192 i32.const 1935636852 call $put32
+i32.const 2196 i32.const 1702060661 call $put32
+i32.const 2200 i32.const 116 call $put32
+i32.const 16384 i32.const 1264536406 call $put32
+i32.const 16388 i32.const 1885295176 call $put32
+i32.const 16392 i32.const 1635021423 call $put32
+i32.const 16396 i32.const 1768712546 call $put32
+i32.const 16400 i32.const 1935636852 call $put32
+i32.const 16404 i32.const 1702060661 call $put32
+i32.const 16408 i32.const 2019909492 call $put32
+i32.const 16412 i32.const 6386292 call $put32
+i32.const 16644 i32.const 1264536406 call $put32
+i32.const 16648 i32.const 1885295176 call $put32
+i32.const 16652 i32.const 1635021423 call $put32
+i32.const 16656 i32.const 1768712546 call $put32
+i32.const 16660 i32.const 1935636852 call $put32
+i32.const 16664 i32.const 1702060661 call $put32
+i32.const 16668 i32.const 116 call $put32 i32.const 1536 i64.const 1552 call $put64)
     (func (export "badExtension") (result i32) (local $r i32)
       i32.const 560 i32.const 1 call $put32 i32.const 568 i64.const 1536 call $put64
       i64.const 512 i64.const 0 i64.const 1024 call $vkCreateInstance local.set $r
       i32.const 560 i32.const 0 call $put32 i32.const 568 i64.const 0 call $put64
       local.get $r)
+    (func (export "badPortableExtension") (result i32) (local $n i32) (local $r i32)
+      call $instanceExtensions
+      i32.const 560 call $get32 local.set $n
+      i32.const 3072 local.get $n i32.const 8 i32.mul i32.add
+      i64.const 1552 call $put64
+      i32.const 560 local.get $n i32.const 1 i32.add call $put32
+      i64.const 512 i64.const 0 i64.const 1024 call $vkCreateInstance local.set $r
+      i32.const 560 local.get $n call $put32
+      local.get $r)
     (func (export "init") (local $i i32)
+      call $instanceExtensions
       i64.const 512 i64.const 0 i64.const 1024 call $vkCreateInstance call $check
       i32.const 1024 call $get64 global.set $instance
       i32.const 1056 i32.const 0 call $put32 global.get $instance i64.const 1056 i64.const 0 call $vkEnumeratePhysicalDevices call $check
@@ -203,6 +367,7 @@ i32.const 1580 i32.const 110 call $put32 i32.const 1536 i64.const 1552 call $put
       i32.const 820 global.get $family call $put32
       i32.const 824 i32.const 1 call $put32 i32.const 832 i64.const 896 call $put64 i32.const 896 i32.const 1065353216 call $put32
       i32.const 600 i32.const 3 call $put32 i32.const 620 i32.const 1 call $put32 i32.const 624 i64.const 800 call $put64
+      call $deviceExtensions
       global.get $physical i64.const 600 i64.const 0 i64.const 1032 call $vkCreateDevice call $check
       i32.const 1032 call $get64 global.set $device)
     (func (export "query") (result i64)
@@ -243,7 +408,7 @@ i32.const 1580 i32.const 110 call $put32 i32.const 1536 i64.const 1552 call $put
       i32.const 1744 call $get32 i32.const 305419896 i32.eq
       i32.const 1748 call $get32 i32.const -1 i32.eq i32.and)
     (func (export "badRange")
-      global.get $physical i64.const 65532 call $vkGetPhysicalDeviceProperties)
+      global.get $physical i64.const 262140 call $vkGetPhysicalDeviceProperties)
     (func (export "badAllocator")
       global.get $device i64.const 123 call $vkDestroyDevice)
     (func (export "cleanup")

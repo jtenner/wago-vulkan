@@ -18,16 +18,17 @@ in Wasm32. Flags, enums, counts and `VkResult` are `i32`; native scalar `float`
 arguments are `f32`. Native `void` functions return no Wasm values. Negative
 Vulkan results are returned unchanged. Bridge validation failures trap.
 
-Current coverage is 151 commands per module: Vulkan 1.0 plus `VK_KHR_surface`,
-`VK_KHR_swapchain` and `VK_KHR_xlib_surface`, matching the original project's
-command set. This is an experimental ABI, version 1, on a 64-bit Linux native
-host with Vulkan and X11 headers/libraries. It uses the public pinned Wago API;
+Current coverage is 152 commands per module: Vulkan 1.0 plus `VK_KHR_surface`,
+`VK_KHR_swapchain`, `VK_KHR_xlib_surface` and `VK_EXT_metal_surface`. This is an
+experimental ABI, version 1, for 64-bit Linux and macOS hosts. macOS uses the
+Vulkan loader and MoltenVK; native Metal rendering still needs hardware testing.
+It uses the public pinned Wago API;
 the benchmark runtime overlay is not needed by the library.
 
 ## Build and load
 
 Requires Go 1.25 or later, CGO, a C compiler, `pkg-config`, Vulkan development
-headers/loader and X11 development headers. A Vulkan ICD is needed to execute
+headers/loader and, on Linux, X11 development headers. A Vulkan ICD is needed to execute
 Vulkan calls; Mesa lavapipe works for the headless example and integration tests.
 
 ```go
@@ -38,7 +39,7 @@ import (
 )
 
 rt := wago.NewRuntime(wago.WithRuntimeConfig(
-    wago.NewRuntimeConfig().WithCoreFeatures(wago.CoreFeaturesV3),
+    wago.NewRuntimeConfig().WithCoreFeatures(wago.SupportedFeatures() & wago.CoreFeaturesV3),
 ))
 defer rt.Close()
 err := rt.LoadPlugins(context.Background(), vulkan.PluginSet(vulkan.Options{
@@ -66,6 +67,69 @@ go run ./examples/headless -abi gc
 go run ./examples/headless -abi wasm32
 go run ./examples/headless -abi wasm64
 ```
+
+### macOS / MoltenVK
+
+With native-architecture Go, Xcode Command Line Tools and Homebrew installed:
+
+```sh
+brew install pkgconf vulkan-headers vulkan-loader molten-vk
+export PKG_CONFIG_PATH="$(brew --prefix vulkan-loader)/lib/pkgconfig:$(brew --prefix vulkan-headers)/share/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+export VK_DRIVER_FILES="$(brew --prefix molten-vk)/etc/vulkan/icd.d/MoltenVK_icd.json"
+go test ./...                       # no GPU required
+go run ./examples/headless -abi wasm32 # requires a usable Metal device
+```
+
+Alternatively, use the [macOS Vulkan SDK](https://vulkan.lunarg.com/doc/sdk/latest/mac/getting_started.html)
+and its environment setup (`setup-env.sh`). `pkg-config --cflags --libs vulkan`
+must find matching headers and `libvulkan.dylib`. This package links the Vulkan
+loader; installing only `libMoltenVK.dylib` is not enough. Do not mix Intel and
+Apple Silicon Go/libraries. No XQuartz or X11 library is required on macOS.
+
+The pinned Wago runtime has additional guest-ABI limits independent of Vulkan:
+Intel macOS does not advertise GC or memory64, and the included GC fixture is
+not admitted on Apple Silicon because exact host-boundary root maps are
+unavailable for it. Start with `wasm32` on either Mac; `wasm64` is also a candidate
+on Apple Silicon. The example reports unsupported modes before instantiation,
+and Mac tests explicitly skip them using Wago's feature/root-admission APIs.
+A skipped ABI is **not** validated support. The GC bridge layout still has native
+mock coverage. No Wago compiler changes or dependency updates are included.
+
+Guests retain control of instance/device creation. They must:
+
+- Enumerate instance extensions and, when available, enable
+  `VK_KHR_portability_enumeration` together with
+  `VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR` (value `1`)
+- For a Vulkan 1.0 instance, enable `VK_KHR_get_physical_device_properties2`
+  when using `VK_KHR_portability_subset`
+- Enumerate the selected physical device's extensions and enable
+  `VK_KHR_portability_subset` if advertised
+
+The checked-in headless guests do this negotiation on both platforms. The plugin
+does not add extensions, change flags, or promise Vulkan features on a guest's
+behalf. MoltenVK implements a portability subset, so check device capabilities
+and its [runtime guidance](https://github.com/KhronosGroup/MoltenVK/blob/main/Docs/MoltenVK_Runtime_UserGuide.md).
+The current catalogue does not expose the extended portability feature/property
+query structures. Full portability-subset feature discovery is outside this change.
+
+For presentation, the embedding host must create/retain an AppKit view and
+`CAMetalLayer` on the appropriate thread, set the layer's delegate to the view,
+and pass its native address to the guest. Enable `VK_KHR_surface` and
+`VK_EXT_metal_surface`, then call `vkCreateMetalSurfaceEXT` with a packed
+`VkMetalSurfaceCreateInfoEXT`. Its `pLayer` is an **external 64-bit native
+address in all three ABIs**, not a guest offset. The wrapper never creates,
+retains, or releases the layer. Keep it alive through surface/swapchain use.
+The Metal command is resolved through `vkGetInstanceProcAddr` for its instance;
+an unavailable command returns `VK_ERROR_EXTENSION_NOT_PRESENT`.
+
+All import signatures remain present on both platforms. On macOS,
+`vkCreateXlibSurfaceKHR` returns `VK_ERROR_EXTENSION_NOT_PRESENT` and
+`vkGetPhysicalDeviceXlibPresentationSupportKHR` returns `VK_FALSE`; neither
+touches an Xlib address. Existing Linux Xlib dispatch is preserved.
+
+See the [Mac smoke-test checklist](docs/macos-testing.md) for commands, expected
+results, and the distinction between CPU checks, headless device access and
+actual surface/rendering validation.
 
 ## Function shapes
 
@@ -167,7 +231,8 @@ A zero-initialized 120-byte GC arena can contain the following data, using the
 | 112 | `pQueuePriorities[0]` | bit pattern of f32 `1.0` |
 
 The remaining fields are zero: no `pNext`, flags, layers, extensions or optional
-features. Provide a separate two-word output buffer for the native device
+features. On a portability device, also populate the required
+`VK_KHR_portability_subset` extension as described above. Provide a separate two-word output buffer for the native device
 handle and pass a null allocator:
 
 ```wat
@@ -191,7 +256,7 @@ are 32-bit; handles remain 64-bit. Do not assume the native Vulkan headers'
 Wasm32 handle typedefs match this wire ABI.
 
 [layouts.json](abi/layouts.json) contains the sizes, alignments and member byte
-offsets for all 111 supported structure/union layouts. GC uses its `64` layouts.
+offsets for all 112 supported structure/union layouts. GC uses its `64` layouts.
 
 ## Mapped memory
 
@@ -247,7 +312,7 @@ See [the production measurements](benchmarks/production.md) and
 [the original ABI comparison](benchmarks/abi/results/report.md).
 
 This is a trusted native FFI. The caller supplies valid Vulkan handles, native
-external addresses such as Xlib `Display*`, correct counts and Vulkan valid
+external addresses such as Xlib `Display*` or `CAMetalLayer*`, correct counts and Vulkan valid
 usage. Bounds checks on guest buffers do not validate arbitrary native addresses.
 Guest allocator callbacks and proc-address getters are not supported; allocator
 arguments must be NULL. `pNext` chains accept types present in the generated
@@ -274,6 +339,10 @@ Integration fixtures create/destroy an instance and device, test a real negative
 Native fixtures also check shader byte counts, sample-mask rounding, enumeration
 capacity/writeback, and `size_t` outputs in both wire widths. Scratch regressions
 cover allocation order changes and shrinking batches under tight limits.
+Metal surface tests use a fake driver to verify the 64-bit external layer address,
+both wire layouts, negative results and per-instance function lookup. The macOS CI jobs are configured to build/link and run Go CPU checks and
+ASan/UBSan native mocks on Intel and Apple Silicon; they do not run the
+`integration` tests or certify Metal GPU/rendering.
 
 Generated wrappers are checked in. Regeneration additionally requires Python 3,
 the Vulkan XML registry, and `wasm-tools` for integration guests:

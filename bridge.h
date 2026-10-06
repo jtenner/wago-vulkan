@@ -1,7 +1,6 @@
 #ifndef WAGO_VULKAN_BRIDGE_H
 #define WAGO_VULKAN_BRIDGE_H
-#define VK_USE_PLATFORM_XLIB_KHR
-#include <vulkan/vulkan.h>
+#include "platform.h"
 #include <stdint.h>
 #include <stddef.h>
 

@@ -47,10 +47,10 @@ for mode in ['gc', 'wasm32', 'wasm64']:
         (func $get64 (param $a i32) (result i64)
           local.get $a call $get32 i64.extend_i32_u
           local.get $a i32.const 4 i32.add call $get32 i64.extend_i32_u i64.const 32 i64.shl i64.or)'''
-        make_storage = 'i32.const 8192 array.new_default $words global.set $arena'
+        make_storage = 'i32.const 65536 array.new_default $words global.set $arena'
     else:
         extend = 'i64.extend_i32_u' if width == 64 else ''
-        storage = f'''(memory {"i64 " if width == 64 else ""}1)
+        storage = f'''(memory {"i64 " if width == 64 else ""}4)
         (func $put32 (param $a i32) (param $v i32) local.get $a {extend} local.get $v i32.store)
         (func $get32 (param $a i32) (result i32) local.get $a {extend} i32.load)
         (func $put64 (param $a i32) (param $v i64) local.get $a {extend} local.get $v i64.store)
@@ -64,9 +64,20 @@ for mode in ['gc', 'wasm32', 'wasm64']:
     mp = 'VkPhysicalDeviceMemoryProperties'
     memtype = off(mp, 'memoryTypes')
     # Use word stores even for strings so the GC fixture needs no byte accessor.
+    def write_string(location, value):
+        data = value.encode() + b'\0'
+        data += b'\0' * (-len(data) % 4)
+        return '\n'.join(put(location+i, int.from_bytes(data[i:i+4], 'little')) for i in range(0, len(data), 4))
     bad_extension = b'VK_WAGO_nonexistent_extension\0'
     bad_extension += b'\0' * (-len(bad_extension) % 4)
     string = '\n'.join(put(1552+i, int.from_bytes(bad_extension[i:i+4], 'little')) for i in range(0, len(bad_extension), 4))
+    extension_names = [(2048, 'VK_KHR_portability_enumeration'),
+                       (2112, 'VK_KHR_get_physical_device_properties2'),
+                       (2176, 'VK_KHR_portability_subset')]
+    # Two synthetic records exercise exact extension matching without an ICD.
+    for location, name in extension_names + [(16384, 'VK_KHR_portability_subset_extra'),
+                                              (16644, 'VK_KHR_portability_subset')]:
+        string += '\n' + write_string(location, name)
     import_block = '\n    '.join(imports)
     code = f'''(module
     {import_block}
@@ -78,6 +89,88 @@ for mode in ['gc', 'wasm32', 'wasm64']:
     (global $allocation (mut i64) (i64.const 0))
     (global $mapped (mut i32) (i32.const 0))
     (func $check (param $r i32) local.get $r if unreachable end)
+    (func $get8 (param $a i32) (result i32)
+      local.get $a i32.const -4 i32.and call $get32
+      local.get $a i32.const 3 i32.and i32.const 8 i32.mul i32.shr_u i32.const 255 i32.and)
+    (func $sameName (param $a i32) (param $b i32) (result i32) (local $i i32) (local $v i32)
+      loop $next
+        local.get $a local.get $i i32.add call $get8 local.tee $v
+        local.get $b local.get $i i32.add call $get8 i32.ne if i32.const 0 return end
+        local.get $v i32.eqz if i32.const 1 return end
+        local.get $i i32.const 1 i32.add local.tee $i i32.const 256 i32.lt_u br_if $next
+      end i32.const 0)
+    (func $hasExtension (param $name i32) (result i32) (local $i i32)
+      block $done loop $next
+        local.get $i i32.const 1064 call $get32 i32.ge_u br_if $done
+        local.get $i i32.const 260 i32.mul i32.const 16384 i32.add local.get $name call $sameName
+        if i32.const 1 return end
+        local.get $i i32.const 1 i32.add local.set $i br $next
+      end end i32.const 0)
+    (func $enableInstanceExtensions (local $n i32)
+      {field(ci,512,'flags',0)}
+      i32.const 2048 call $hasExtension if
+        {field(ci,512,'flags',1)} ;; VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR
+        {putptr(3072,2048)} i32.const 1 local.set $n
+      end
+      i32.const 2112 call $hasExtension if
+        i32.const 3072 local.get $n i32.const {width//8} i32.mul i32.add
+        {"i32" if width == 32 else "i64"}.const 2112 call ${"put32" if width == 32 else "put64"}
+        local.get $n i32.const 1 i32.add local.set $n
+      end
+      i32.const {512+off(ci,'enabledExtensionCount')} local.get $n call $put32
+      {pfield(ci,512,'ppEnabledExtensionNames',3072)})
+    (func $instanceExtensions
+      ;; Bounded fixture storage: 512 VkExtensionProperties records, 260 bytes each.
+      {put(1064,512)} {null} {ptr(1064)} {ptr(16384)} call $vkEnumerateInstanceExtensionProperties call $check
+      call $enableInstanceExtensions)
+    (func $enableDeviceExtensions
+      {field(di,600,'enabledExtensionCount',0)} {pfield(di,600,'ppEnabledExtensionNames',0)}
+      i32.const 2176 call $hasExtension if
+        {putptr(3136,2176)} {field(di,600,'enabledExtensionCount',1)}
+        {pfield(di,600,'ppEnabledExtensionNames',3136)}
+      end)
+    (func $deviceExtensions
+      {put(1064,512)} global.get $physical {null} {ptr(1064)} {ptr(16384)} call $vkEnumerateDeviceExtensionProperties call $check
+      call $enableDeviceExtensions)
+    (func (export "extensionMatching") (result i32)
+      {put(1064,0)} i32.const 2176 call $hasExtension i32.eqz
+      {put(1064,1)} i32.const 2176 call $hasExtension i32.eqz i32.and
+      {put(1064,2)} i32.const 2176 call $hasExtension i32.and
+      i32.const 2048 call $hasExtension i32.eqz i32.and)
+    (func $expect32 (param $address i32) (param $value i32)
+      local.get $address call $get32 local.get $value i32.ne if unreachable end)
+    (func (export "extensionNegotiation")
+      {put(1064,0)} call $enableInstanceExtensions call $enableDeviceExtensions
+      i32.const {512+off(ci,'flags')} i32.const 0 call $expect32
+      i32.const {512+off(ci,'enabledExtensionCount')} i32.const 0 call $expect32
+      i32.const {600+off(di,'enabledExtensionCount')} i32.const 0 call $expect32
+      {write_string(16384, 'VK_KHR_get_physical_device_properties2')}
+      {put(1064,1)} call $enableInstanceExtensions
+      i32.const {512+off(ci,'flags')} i32.const 0 call $expect32
+      i32.const {512+off(ci,'enabledExtensionCount')} i32.const 1 call $expect32
+      i32.const 3072 i32.const 2112 call $expect32
+      {write_string(16384, 'VK_KHR_portability_enumeration')} call $enableInstanceExtensions
+      i32.const {512+off(ci,'flags')} i32.const 1 call $expect32
+      i32.const {512+off(ci,'enabledExtensionCount')} i32.const 1 call $expect32
+      i32.const 3072 i32.const 2048 call $expect32
+      {write_string(16644, 'VK_KHR_get_physical_device_properties2')}
+      {put(1064,2)} call $enableInstanceExtensions
+      i32.const {512+off(ci,'flags')} i32.const 1 call $expect32
+      i32.const {512+off(ci,'enabledExtensionCount')} i32.const 2 call $expect32
+      i32.const {512+off(ci,'ppEnabledExtensionNames')} i32.const 3072 call $expect32
+      i32.const 3072 i32.const 2048 call $expect32
+      i32.const {3072+width//8} i32.const 2112 call $expect32
+      {write_string(16384, 'VK_KHR_portability_subset')}
+      {put(1064,1)} call $enableDeviceExtensions
+      i32.const {600+off(di,'enabledExtensionCount')} i32.const 1 call $expect32
+      i32.const {600+off(di,'ppEnabledExtensionNames')} i32.const 3136 call $expect32
+      i32.const 3136 i32.const 2176 call $expect32
+      ;; Reusing the helper must remove stale flags/extensions as well.
+      {put(1064,0)} call $enableInstanceExtensions call $enableDeviceExtensions
+      i32.const {512+off(ci,'flags')} i32.const 0 call $expect32
+      i32.const {512+off(ci,'enabledExtensionCount')} i32.const 0 call $expect32
+      i32.const {600+off(di,'enabledExtensionCount')} i32.const 0 call $expect32
+      i32.const {600+off(di,'ppEnabledExtensionNames')} i32.const 0 call $expect32)
     (func (export "version") (result i32) call $abiVersion)
     (func (export "prepare")
       {make_storage}
@@ -89,7 +182,17 @@ for mode in ['gc', 'wasm32', 'wasm64']:
       {ptr(512)} {null} {ptr(1024)} call $vkCreateInstance local.set $r
       {field(ci,512,'enabledExtensionCount',0)} {pfield(ci,512,'ppEnabledExtensionNames',0)}
       local.get $r)
+    (func (export "badPortableExtension") (result i32) (local $n i32) (local $r i32)
+      call $instanceExtensions
+      i32.const {512+off(ci,'enabledExtensionCount')} call $get32 local.set $n
+      i32.const 3072 local.get $n i32.const {width//8} i32.mul i32.add
+      {"i32" if width == 32 else "i64"}.const 1552 call ${"put32" if width == 32 else "put64"}
+      i32.const {512+off(ci,'enabledExtensionCount')} local.get $n i32.const 1 i32.add call $put32
+      {ptr(512)} {null} {ptr(1024)} call $vkCreateInstance local.set $r
+      i32.const {512+off(ci,'enabledExtensionCount')} local.get $n call $put32
+      local.get $r)
     (func (export "init") (local $i i32)
+      call $instanceExtensions
       {ptr(512)} {null} {ptr(1024)} call $vkCreateInstance call $check
       i32.const 1024 call $get64 global.set $instance
       {put(1056,0)} global.get $instance {ptr(1056)} {null} call $vkEnumeratePhysicalDevices call $check
@@ -108,6 +211,7 @@ for mode in ['gc', 'wasm32', 'wasm64']:
       i32.const {800+off(qi,'queueFamilyIndex')} global.get $family call $put32
       {field(qi,800,'queueCount',1)} {pfield(qi,800,'pQueuePriorities',896)} {put(896,1065353216)}
       {field(di,600,'sType',3)} {field(di,600,'queueCreateInfoCount',1)} {pfield(di,600,'pQueueCreateInfos',800)}
+      call $deviceExtensions
       global.get $physical {ptr(600)} {null} {ptr(1032)} call $vkCreateDevice call $check
       i32.const 1032 call $get64 global.set $device)
     (func (export "query") (result i64)
@@ -148,7 +252,7 @@ for mode in ['gc', 'wasm32', 'wasm64']:
       i32.const 1744 call $get32 i32.const 305419896 i32.eq
       i32.const 1748 call $get32 i32.const -1 i32.eq i32.and)
     (func (export "badRange")
-      global.get $physical {ptr(32764 if gc else 65532)} call $vkGetPhysicalDeviceProperties)
+      global.get $physical {ptr(262140)} call $vkGetPhysicalDeviceProperties)
     (func (export "badAllocator")
       global.get $device {ptr(0) if gc else ptr(123)} call $vkDestroyDevice)
     (func (export "cleanup")

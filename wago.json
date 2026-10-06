@@ -10,7 +10,7 @@
     "license": "MIT",
     "repository": "https://github.com/jtenner/wago-vulkan",
     "authors": [{"name": "jtenner"}],
-    "platforms": ["linux/amd64", "linux/arm64"],
+    "platforms": ["linux/amd64", "linux/arm64", "darwin/amd64", "darwin/arm64"],
     "category": "graphics",
     "tags": ["vulkan", "graphics", "wasmgc", "wasm32", "wasm64", "ffi"]
   }

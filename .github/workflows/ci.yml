@@ -21,3 +21,25 @@ jobs:
       - run: go test -race -count=1 -tags integration ./...
       - run: GOEXPERIMENT=cgocheck2 go test -count=1 -tags integration ./...
       - run: bash scripts/test-native.sh
+  macos-cpu:
+    # Compile, link and CPU/mock checks only. These standard runners are not
+    # treated as proof of a usable Metal device or successful rendering.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install Vulkan loader and headers (no XQuartz required)
+        run: brew install pkgconf vulkan-headers vulkan-loader
+      - run: go vet ./...
+      - run: bash scripts/test-native.sh
+      # Verbose output makes the pinned runtime's unavailable guest ABIs
+      # explicit skips; successful native mocks are separate evidence.
+      - run: go test -v -race -count=1 ./...
+      - run: GOEXPERIMENT=cgocheck2 go test -v -count=1 ./...
+      - run: go build ./examples/headless
