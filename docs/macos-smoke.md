@@ -13,7 +13,8 @@ If dependencies are missing, these are optional **manual** installation steps:
 # Only if the Command Line Tools are absent:
 xcode-select --install
 # Only if you use Homebrew and need these dependencies:
-brew install go python pkgconf vulkan-headers vulkan-loader molten-vk
+brew install go python pkgconf vulkan-headers vulkan-loader molten-vk vulkan-validationlayers
+export VK_LAYER_PATH="$(brew --prefix vulkan-validationlayers)/share/vulkan/explicit_layer.d"
 ```
 
 The script discovers standard Homebrew paths. For a LunarG SDK, source its
@@ -23,9 +24,11 @@ MoltenVK ICD JSON. Use that SDK's loader, headers, and driver together. An expli
 x86_64/arm64 libraries. The manifest's library path must resolve to an existing
 MoltenVK dylib; failures report the missing path/architecture.
 
-For validation, use a matching SDK that includes `VK_LAYER_KHRONOS_validation`,
-or manually install/configure that layer. The basic Homebrew list above does
-**not** promise a validation layer. The default run completes GPU phases and
+For strict acceptance, the Homebrew command above installs
+`VK_LAYER_KHRONOS_validation`; the export makes its manifest discoverable.
+Homebrew currently lists an Intel Sonoma bottle; other Intel macOS versions
+may require a source build or a matching LunarG SDK containing the layer.
+The script still checks actual availability at runtime. The default run completes GPU phases and
 fails if validation is missing. To collect those phases with an explicit
 validation **SKIP**, use `--validation-optional`; that run exits **2 / INCOMPLETE**,
 never a full pass. Unset validation-disabling environment overrides first.
@@ -92,8 +95,15 @@ upload occurs. You choose what to share.
 ## Getting this local branch to the tester
 
 The branch is `smoke/intel-mac-moltenvk`, based on PR1 head
-`ad7ff02d707940a645759eb3cb1dd7d9e38e1c87`. It must be published or its archive/patch
-transferred before another machine can obtain it. Publishing is a separate action;
+`ad7ff02d707940a645759eb3cb1dd7d9e38e1c87`. It can be cloned directly from GitHub:
+
+```sh
+git clone --branch smoke/intel-mac-moltenvk --single-branch https://github.com/jtenner/wago-vulkan.git
+cd wago-vulkan
+bash scripts/macos-smoke.sh
+```
+
+Use the prerequisites above before running. The smoke branch is published separately;
 the original PR branch is not modified. A complete source archive can be extracted and used with the command above; its
 `SMOKE-COMMIT.txt` and `SMOKE-SHA256.json` record the source commit and verify the
 source files before running. Extract a fresh copy if this verification fails.
@@ -128,3 +138,5 @@ This prints explicit software/validation/presentation skips. It is **not** nativ
 Mac, Metal, AppKit, or visible presentation evidence. Native Mac compilation and
 GPU/visual execution still require this hardware run. The smoke harness changes
 no plugin or Wago algorithms.
+
+Validation installation reference: [Homebrew vulkan-validationlayers](https://formulae.brew.sh/formula/vulkan-validationlayers).
